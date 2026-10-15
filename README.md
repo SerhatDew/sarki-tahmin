@@ -10,6 +10,9 @@ Discord uzerinde calisan kademeli sarkı ve gorsel tahmin oyunu botu. Bun ve Typ
 - Akilli Eslesme: Turkce karakter normalizasyonu, kucuk yazim hatalarini tolere eden benzerlik algoritmasi.
 - Istatistik ve Siralama: SQLite tabanli kullanici profilleri, puanlama ve sunucu liderlik tablosu.
 
+Şarkı modunda cevap şarkının adıdır; yalnızca sanatçı adı puan kazandırmaz.
+Sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
+
 ## Gereksinimler
 
 - Bun (v1.2 veya uzeri)

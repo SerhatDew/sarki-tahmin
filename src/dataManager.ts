@@ -62,7 +62,7 @@ export class DataManager {
       normalized += map[char] ?? char.toLowerCase();
     }
     return normalized
-      .replace(/[^\w\s]/g, "")
+      .replace(/[^\w\s]/g, " ")
       .replace(/(.)\1{2,}/g, "$1")
       .replace(/\s+/g, " ")
       .trim();
@@ -136,14 +136,6 @@ export class DataManager {
     if (!cleanGuess || cleanGuess.length < 2) return false;
 
     const candidates = [item.name, ...(item.aliases || [])];
-    if (item.artist) {
-      candidates.push(
-        item.artist,
-        `${item.artist} ${item.name}`,
-        `${item.name} ${item.artist}`,
-        `${item.artist} - ${item.name}`
-      );
-    }
     const normCandidates = candidates.map(c => this.normalizeText(c)).filter(Boolean);
 
     // 1. Tam eşleşme
