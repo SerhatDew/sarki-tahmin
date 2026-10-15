@@ -27,6 +27,7 @@ import { imageProcessor } from "./imageProcessor";
 import { db } from "./database";
 import type { SongAudio } from "./voicePlayback";
 import { resolveSongPreview, type SongPreview } from "./songPreview";
+import { resolveSongLyrics, type SongLyrics } from "./songLyrics";
 import { randomUUID } from "node:crypto";
 
 interface PanelContent {
@@ -78,6 +79,8 @@ export class GameSession {
   private roundTimer: NodeJS.Timeout | null = null;
   private wrongGuessCount: number = 0;
   private currentPreview: SongPreview | null = null;
+  private currentLyrics: SongLyrics | null = null;
+  private revealedLyricLines = 0;
   private songLookup: AbortController | null = null;
 
   constructor(
@@ -102,10 +105,13 @@ export class GameSession {
   public async start(): Promise<void> {
     this.isRunning = true;
     const startEmbed = new EmbedBuilder()
-      .setTitle(this.audio ? "Sesli şarkı tahmini başlıyor" : "Tahmin oyunu başlıyor")
+      .setTitle(this.gameMode === "lyrics" ? "Sözlerle tahmin başlıyor" : this.audio ? "Sesli şarkı tahmini başlıyor" : "Tahmin oyunu başlıyor")
       .setDescription(
         `**Kategori:** ${this.getCategoryTitle(this.category)}\n` +
-        `**Toplam tur:** ${this.totalRounds} · **Tur süresi:** ${CONFIG.ROUND_DURATION} saniye\n\n` +
+        `**Toplam tur:** ${this.totalRounds} · ` +
+        (this.gameMode === "lyrics"
+          ? `Süre sınırı yok. Her ${CONFIG.BLUR_STEP_SECONDS} saniyede yeni bir söz satırı açılır.\n\n`
+          : `**Tur süresi:** ${CONFIG.ROUND_DURATION} saniye\n\n`) +
         (this.audio ? "Şarkı kesitleri bu ses kanalında çalacak.\n" : "") +
         (this.gameMode === "buttons"
           ? "Paneldeki dört seçenekten doğru cevabı seçin.\n"
@@ -156,19 +162,37 @@ export class GameSession {
 
     const round = this.currentRound;
     this.currentPreview = null;
-    if (this.audio) {
+    this.currentLyrics = null;
+    this.revealedLyricLines = 0;
+    if (this.gameMode === "lyrics") {
       const lookup = new AbortController();
       this.songLookup = lookup;
       try {
-        this.currentPreview = await this.selectVoiceSong(lookup.signal);
+        const lyrics = await this.selectLyricsSong(lookup.signal);
+        if (!this.isRunning || this.currentRound !== round) return;
+        this.currentLyrics = lyrics;
+        this.currentItem = lyrics.item;
+        this.revealedLyricLines = 1;
+      } catch (error) {
+        if (!this.isRunning || lookup.signal.aborted || this.currentRound !== round) return;
+        console.error("Şarkı sözleri hazırlanamadı:", error);
+        await this.endGame("Şarkı sözlerine ulaşılamadı; oyun kapatıldı.");
+        return;
+      }
+    } else if (this.audio) {
+      const lookup = new AbortController();
+      this.songLookup = lookup;
+      try {
+        const preview = await this.selectVoiceSong(lookup.signal);
+        if (!this.isRunning || this.currentRound !== round) return;
+        this.currentPreview = preview;
+        this.currentItem = preview.item;
       } catch (error) {
         if (!this.isRunning || lookup.signal.aborted || this.currentRound !== round) return;
         console.error("Şarkı önizlemesi hazırlanamadı:", error);
         await this.endGame("Şarkı kaynağına erişilemedi; sesli oyun kapatıldı.");
         return;
       }
-      if (!this.isRunning || this.currentRound !== round) return;
-      this.currentItem = this.currentPreview.item;
     } else {
       this.currentItem = dataManager.getRandomItem(this.currentCategory, Array.from(this.excludedIds));
     }
@@ -181,7 +205,7 @@ export class GameSession {
 
     const files: AttachmentBuilder[] = [];
     let filename: string | undefined;
-    if (!this.audio) {
+    if (!this.audio && this.gameMode !== "lyrics") {
       const imgBuffer = await imageProcessor.getBlurredImageBuffer(
         this.currentCategory, this.currentItem.id, this.currentLevel
       );
@@ -223,6 +247,19 @@ export class GameSession {
     throw new Error("Katalogdaki şarkılar için ses önizlemesi bulunamadı.");
   }
 
+  private async selectLyricsSong(signal: AbortSignal): Promise<SongLyrics> {
+    let pool = dataManager.songs.filter(song => !this.excludedIds.has(song.id));
+    if (pool.length === 0) pool = [...dataManager.songs];
+    while (pool.length > 0) {
+      signal.throwIfAborted();
+      const index = Math.floor(Math.random() * pool.length);
+      const [song] = pool.splice(index, 1);
+      const lyrics = await resolveSongLyrics(song!, signal);
+      if (lyrics) return lyrics;
+    }
+    throw new Error("Katalogdaki şarkılar için söz bulunamadı.");
+  }
+
   private getSongHint(level: number, item: GameItem): string {
     if (level === 5) {
       return `**Müzik Türü:** \`${item.genre || "Bilinmiyor"}\``;
@@ -244,7 +281,7 @@ export class GameSession {
     const embed = new EmbedBuilder()
       .setTitle(`Tur ${progress} / ${this.totalRounds} — ${this.getCategoryTitle()}`)
       .setDescription(
-        `**${this.audio ? "İpucu" : "Bulanıklık"} seviyesi:** ${this.currentLevel} / 5\n` +
+        `**${this.audio || this.gameMode === "lyrics" ? "İpucu" : "Bulanıklık"} seviyesi:** ${this.currentLevel} / 5\n` +
         `**Bu turun değeri:** ${points} puan\n\n` +
         (this.gameMode === "buttons"
           ? "Aşağıdaki seçeneklerden doğru cevabı seçin."
@@ -252,7 +289,9 @@ export class GameSession {
       )
       .setImage(attachmentName ? `attachment://${attachmentName}` : null)
       .setColor(this.currentLevel > 2 ? CONFIG.COLORS.PRIMARY : CONFIG.COLORS.WARNING)
-      .setFooter({ text: `Şarkı/Görsel Tahmin Sistemi • Tur Süresi: ${CONFIG.ROUND_DURATION}s` });
+      .setFooter({ text: this.gameMode === "lyrics"
+        ? "Süre sınırı yok · Söz kaynağı: LRCLIB"
+        : `Şarkı/Görsel Tahmin Sistemi · Tur süresi: ${CONFIG.ROUND_DURATION}s` });
 
     if (this.scores.size > 0) {
       const topLeaders = Array.from(this.scores.values())
@@ -262,7 +301,21 @@ export class GameSession {
       embed.addFields({ name: "Anlık Skorlar", value: leaderStr, inline: false });
     }
 
-    if (this.currentCategory === "songs" && this.currentItem) {
+    if (this.currentLyrics) {
+      const visible = this.currentLyrics.lines
+        .slice(Math.max(0, this.revealedLyricLines - 6), this.revealedLyricLines)
+        .join("\n")
+        .slice(-1024);
+      const allRevealed = this.revealedLyricLines >= this.currentLyrics.lines.length;
+      embed.addFields({
+        name: `Son açılan sözler (${this.revealedLyricLines}/${this.currentLyrics.lines.length})`,
+        value: visible,
+        inline: false
+      });
+      embed.setFooter({ text: allRevealed
+        ? "Tüm sözler açıldı · Doğru cevap gelene kadar tahmin edebilirsiniz"
+        : `Her ${CONFIG.BLUR_STEP_SECONDS} saniyede yeni söz · Süre sınırı yok` });
+    } else if (this.currentCategory === "songs" && this.currentItem) {
       embed.addFields({
         name: "Şarkı İpucu",
         value: this.getSongHint(this.currentLevel, this.currentItem),
@@ -311,7 +364,10 @@ export class GameSession {
     const controlRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(this.componentId("hint"))
-        .setLabel(this.audio ? "İpucu (-10 Puan)" : "Netleştir (-10 Puan)")
+        .setLabel(this.gameMode === "lyrics"
+          ? this.currentLevel > 1 ? "Söz Aç (-10 Puan)" : "Söz Aç"
+          : this.audio ? "İpucu (-10 Puan)" : "Netleştir (-10 Puan)")
+        .setDisabled(this.gameMode === "lyrics" && this.revealedLyricLines >= (this.currentLyrics?.lines.length ?? 0))
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId(this.componentId("skip"))
@@ -338,26 +394,35 @@ export class GameSession {
   private startTimerLoop(): void {
     const round = this.currentRound;
     const step = CONFIG.BLUR_STEP_SECONDS * 1000;
-    const deadline = Date.now() + CONFIG.ROUND_DURATION * 1000;
+    const deadline = this.gameMode === "lyrics" ? null : Date.now() + CONFIG.ROUND_DURATION * 1000;
+    if (this.currentLyrics && this.revealedLyricLines >= this.currentLyrics.lines.length) return;
     const tick = async () => {
       if (!this.isRunning || this.roundFinished || this.currentRound !== round) return;
-      if (Date.now() >= deadline) {
+      if (deadline !== null && Date.now() >= deadline) {
         await this.onRoundTimeout();
         return;
       }
-      if (this.currentLevel > 1) {
+      const lyrics = this.currentLyrics;
+      if (lyrics) {
+        if (this.revealedLyricLines >= lyrics.lines.length) return;
+        this.revealedLyricLines++;
+        this.currentLevel = Math.max(1, this.currentLevel - 1);
+        await this.updateImageAndEmbed();
+        if (this.revealedLyricLines >= lyrics.lines.length) return;
+      } else if (this.currentLevel > 1) {
         this.currentLevel--;
         await this.updateImageAndEmbed();
       }
       if (this.isRunning && !this.roundFinished && this.currentRound === round) {
-        this.roundTimer = setTimeout(run, Math.min(step, Math.max(0, deadline - Date.now())));
+        this.roundTimer = setTimeout(run, deadline === null ? step : Math.min(step, Math.max(0, deadline - Date.now())));
       }
     };
     const run = () => {
+      if (this.currentRound !== round) return;
       this.roundTimer = null;
       void tick().catch(error => console.error("Tur zamanlayıcısı hatası:", error));
     };
-    this.roundTimer = setTimeout(run, Math.min(step, CONFIG.ROUND_DURATION * 1000));
+    this.roundTimer = setTimeout(run, deadline === null ? step : Math.min(step, CONFIG.ROUND_DURATION * 1000));
   }
 
   private async updateImageAndEmbed(): Promise<void> {
@@ -366,7 +431,7 @@ export class GameSession {
     const level = this.currentLevel;
 
     try {
-      if (this.audio) {
+      if (this.audio || this.gameMode === "lyrics") {
         await this.updatePanel({
           embeds: [this.createRoundEmbed()],
           components: this.createRoundComponents()
@@ -415,11 +480,17 @@ export class GameSession {
           .setLabel(this.currentCategory === "songs" ? "Şarkının adı" : "Cevabınız")
           .setTextInputComponent(input)));
     } else if (action === "hint") {
-      if (this.currentLevel <= 1) {
+      if (this.currentLyrics) {
+        if (this.revealedLyricLines >= this.currentLyrics.lines.length) {
+          await interaction.reply({ content: "Tüm sözler zaten açık. Tahmin etmeye devam edebilirsiniz.", flags: MessageFlags.Ephemeral });
+          return;
+        }
+        this.revealedLyricLines++;
+      } else if (this.currentLevel <= 1) {
         await interaction.reply({ content: "Son ipucu zaten açık.", flags: MessageFlags.Ephemeral });
         return;
       }
-      this.currentLevel--;
+      this.currentLevel = Math.max(1, this.currentLevel - 1);
       await Promise.all([interaction.deferUpdate(), this.updateImageAndEmbed()]);
     } else if (action === "skip") {
       await Promise.all([interaction.deferUpdate(), this.onRoundTimeout()]);
@@ -462,7 +533,10 @@ export class GameSession {
       this.currentCategory, this.currentLevel, 0, false);
     this.wrongGuessCount++;
     const revealHint = this.currentLevel > 1 && (this.gameMode === "buttons" || this.wrongGuessCount % 3 === 0);
-    if (revealHint) this.currentLevel--;
+    if (revealHint) {
+      this.currentLevel--;
+      if (this.currentLyrics && this.revealedLyricLines < this.currentLyrics.lines.length) this.revealedLyricLines++;
+    }
     await Promise.all([
       interaction.reply({ content: "Yanlış cevap. Tekrar tahmin edebilirsiniz.", flags: MessageFlags.Ephemeral }),
       revealHint ? this.updateImageAndEmbed() : Promise.resolve()
@@ -518,6 +592,9 @@ export class GameSession {
     if (this.currentPreview) {
       embed.addFields({ name: "Kaynak", value: `[Apple Music / iTunes](${this.currentPreview.sourceUrl})` });
     }
+    if (this.currentLyrics) {
+      embed.addFields({ name: "Söz kaynağı", value: `[LRCLIB](${this.currentLyrics.sourceUrl})` });
+    }
 
     await this.updatePanel({ files: [origFile], embeds: [embed] });
     await delay(4000);
@@ -547,7 +624,7 @@ export class GameSession {
     const origFile = new AttachmentBuilder(origBuffer, { name: "timeout.png" });
 
     const embed = new EmbedBuilder()
-      .setTitle("Süre doldu, kimse bilemedi")
+      .setTitle(this.gameMode === "lyrics" ? "Tur atlandı" : "Süre doldu, kimse bilemedi")
       .setDescription(
         (this.currentItem!.artist
           ? `**Doğru cevap:** **${this.currentItem!.name}** — *${this.currentItem!.artist}* (${this.currentItem!.year})\n` +
@@ -560,6 +637,9 @@ export class GameSession {
       .setFooter({ text: `Tur ${this.currentRound}/${this.totalRounds} Tamamlandı` });
     if (this.currentPreview) {
       embed.addFields({ name: "Kaynak", value: `[Apple Music / iTunes](${this.currentPreview.sourceUrl})` });
+    }
+    if (this.currentLyrics) {
+      embed.addFields({ name: "Söz kaynağı", value: `[LRCLIB](${this.currentLyrics.sourceUrl})` });
     }
 
     await this.updatePanel({ files: [origFile], embeds: [embed] });

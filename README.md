@@ -44,12 +44,27 @@ Her oyun tek bir ortak embed kullanır. Tur, ipuçları, cevap ve skorlar yeni m
 Türkçe karakterler ve küçük yazım hataları tolere edilir. Şarkı modunda yalnızca sanatçı adı yeterli değildir; sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
 İlk doğru cevap puanı kazanır. Önceki turdan veya bitmiş oyundan açık kalan formlar geçersizdir.
 
-Her tur 25 saniye sürer. Görsel 5 saniyede bir netleşir; seviye 5'ten 1'e doğru puan 50'den 10'a düşer.
+Form, dört şıklı ve sesli modlarda her tur 25 saniye sürer. Görsel 5 saniyede bir netleşir; seviye 5'ten 1'e doğru puan 50'den 10'a düşer.
 Netleştir butonu seviyeyi bir kademe düşürür, turu atla butonu cevabı açar ve puan vermez.
 Tur bitince zamanlayıcı durur ve paneldeki kontroller kapanır; eski turun buton ve formları yeni turu değiştirmez.
 Oyun sonundaki tur sayısı yalnızca tamamlanan turları içerir; erken kapatılan tur bu sayıya eklenmez.
 
 Şarkı görselleri temsili müzik kartlarıdır, orijinal albüm kapakları değildir.
+
+## Sözlerle tahmin
+
+Bir metin kanalında `/oyun` komutuyla **Şarkı ve Müzik** kategorisini ve **Sözlerle tahmin (süresiz)** modunu seçin.
+Bu mod ses çalmaz; şarkı adını açılan sözlerden bulmaya dayanır.
+
+İlk satırla başlanır, her 5 saniyede yeni bir satır açılır. **Söz Aç** butonu beklemeden bir sonraki satırı gösterir.
+Yeni ipuçları turun değerini 50'den en az 10 puana düşürür. Tahminler aynı paneldeki **Tahmin Et** formundan alınır.
+25 saniyelik sınır yoktur; doğru cevap gelmeden tur kendiliğinden ilerlemez.
+Tüm farklı satırlar açıldığında sözler tekrarlanmaz, tur tahmin beklemeye devam eder.
+**Turu Atla** ve **Bitir** kontrolleri kullanılabilir.
+
+Sözler, başlık ve sanatçı eşleştirilerek [LRCLIB](https://lrclib.net/) üzerinden alınır; internet bağlantısı gerekir.
+Uygun söz bulunmayan şarkılar seçilmez. Kaynak hatasında oturum kapanır.
+Kaynak bağlantısı cevap açıklandıktan sonra gösterilir; sözler diske kaydedilmez.
 
 ## Sesli şarkı tahmini
 

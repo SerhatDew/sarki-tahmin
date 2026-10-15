@@ -36,7 +36,8 @@ export const data = new SlashCommandBuilder()
       .addChoices(
         { name: "Formdan tahmin", value: "form" },
         { name: "Dört şıklı tahmin", value: "buttons" },
-        { name: "Sesli şarkı tahmini", value: "voice" }
+        { name: "Sesli şarkı tahmini", value: "voice" },
+        { name: "Sözlerle tahmin (süresiz)", value: "lyrics" }
       )
   )
   .addIntegerOption(option =>
@@ -58,6 +59,10 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
   const category = interaction.options.getString("kategori", true);
   const mode = interaction.options.getString("mod") || "form";
   const rounds = interaction.options.getInteger("tur_sayisi") || CONFIG.DEFAULT_ROUNDS;
+  if (mode === "lyrics" && category !== "songs") {
+    await interaction.reply({ content: "Sözlerle tahmin modu yalnızca şarkı kategorisinde kullanılabilir.", ephemeral: true });
+    return;
+  }
   if (mode === "voice") {
     if (category !== "songs") {
       await interaction.reply({ content: "Sesli mod yalnızca şarkı kategorisinde kullanılabilir.", ephemeral: true });

@@ -20,13 +20,17 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
       "İlk doğru cevap puanı kazanır. Önceki turdan açık kalan form yeni turda geçersizdir.\n\n" +
       "**Görsel mod:** Şarkı kartları, bayraklar ve eşyalar zamanla netleşir. " +
       "Dört şıklı modda cevabı doğrudan paneldeki seçeneklerden seçin.\n\n" +
+      "**Sözlerle tahmin:** Şarkı kategorisinde süresiz söz modunu seçin. Ses çalınmaz; " +
+      `her ${CONFIG.BLUR_STEP_SECONDS} saniyede yeni bir söz satırı açılır. Doğru cevap gelmeden tur ilerlemez. ` +
+      "Tüm sözler açılırsa tur tahmin bekler; aynı satırlar tekrarlanmaz.\n\n" +
       "**Sesli mod:** `/oyun` içinde şarkı kategorisini ve sesli modu seçin. " +
       "Bot ses kanalında kesit çalar; aynı kanalın sohbetindeki panelden `Tahmin Et` butonuna basın. " +
       "Yalnızca sanatçı adı değil, şarkının adı gerekir. Son oyuncu çıkınca oyun kapanır; boş kanalda başlamaz.\n\n" +
       "**Puanlama:** Seviye 5: 50, seviye 4: 40, seviye 3: 30, seviye 2: 20, seviye 1: 10 puan. " +
-      `Her tur ${CONFIG.ROUND_DURATION} saniye sürer. Süre dolunca cevap açıklanır, puan verilmez.\n\n` +
+      `Söz modu dışındaki turlar ${CONFIG.ROUND_DURATION} saniye sürer. Süre dolunca cevap açıklanır, puan verilmez.\n\n` +
       "**Panel kontrolleri:**\n" +
       "• `İpucu` / `Netleştir`: Bir seviye açar, turun değerini 10 puan düşürür.\n" +
+      "• `Söz Aç`: Süresiz modda sonraki söz satırını açar.\n" +
       "• `Turu Atla`: Cevabı gösterir, puan vermez.\n" +
       "• `Bitir`: Oyunu ve varsa sesi kapatır, skor tablosunu gösterir.\n\n" +
       "**Komutlar:** `/oyun`, `/bitir`, `/sıralama`, `/profil`, `/yardım`."
