@@ -1,70 +1,71 @@
 # sarki-tahmin
 
-Discord uzerinde calisan kademeli sarkı ve gorsel tahmin oyunu botu. Bun ve TypeScript ile gelistirilmistir.
-
-## Ozellikler
-
-- Sarki Tahmin Modu: Album kapaklari, muzik turu, cikis yili, sanatci ve sarki sozu ipuclari ile kademeli tahmin.
-- Bayrak ve Minecraft Modlari: Ulke bayraklari ve Minecraft esyalari icin kademeli blur tahmin mekanigi.
-- Iki Oyun Modu: Sohbete dogrudan metin yazarak veya 4 sikli Discord butonlari ile coktan secmeli tahmin.
-- Akilli Eslesme: Turkce karakter normalizasyonu, kucuk yazim hatalarini tolere eden benzerlik algoritmasi.
-- Istatistik ve Siralama: SQLite tabanli kullanici profilleri, puanlama ve sunucu liderlik tablosu.
-
-Şarkı modunda cevap şarkının adıdır; yalnızca sanatçı adı puan kazandırmaz.
-Sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
-
-Her turun ayrı zamanlayıcısı vardır. Tur bitince zamanlayıcı ve buton dinleyicisi
-kapatılır; önceki turdan geciken etkileşimler yeni turun puanını değiştirmez.
-
-## Gereksinimler
-
-- Bun 1.4.2 veya üzeri
-- Discord Bot Token
+Discord için şarkı, bayrak ve Minecraft eşya tahmin botu. Bun ve TypeScript ile çalışır; puanları yerel SQLite veritabanında tutar.
 
 ## Kurulum
 
-1. Bagimliliklari yukleyin:
+Bun 1.4.2 veya üzeri gerekir. CI, Windows ve Linux üzerinde kurulum, tip kontrolü ve testleri çalıştırır.
 
-```bash
+```sh
 bun install --frozen-lockfile
-```
-
-2. `.env` dosyasini olusturun ve bot tokeninizi girin:
-
-```bash
 cp .env.example .env
 ```
 
-3. Botu baslatin:
+PowerShell'de dosyayı kopyalamak için `Copy-Item .env.example .env` kullanabilirsiniz.
+`.env` içindeki `DISCORD_TOKEN` değerini kendi bot tokeninizle değiştirin. Tokeni paylaşmayın veya repoya eklemeyin.
 
-```bash
+Discord Developer Portal üzerinden:
+
+1. Uygulamanın **Bot** sayfasında **Message Content Intent** seçeneğini açın. Sohbet tahminleri için gereklidir.
+2. Botu sunucuya `bot` ve `applications.commands` kapsamlarıyla davet edin.
+3. Oyun kanalında kanalı görüntüleme, mesaj gönderme, bağlantı yerleştirme ve dosya ekleme izinlerini verin.
+
+```sh
 bun start
 ```
 
-Gelistirme modunda dosya degisikliklerini izleyerek calistirmak icin:
+Komutlar bot bağlandıktan sonra otomatik kaydedilir. Sunucu metin kanalında `/oyun` ile başlayın; global komutların Discord'da görünmesi biraz zaman alabilir.
 
-```bash
-bun run dev
-```
+## Oynanış
 
-## Testler
+`/oyun` komutunda kategori, mod ve 3–30 arasında tur sayısı seçilir. Varsayılan tur sayısı 10'dur.
 
-Birim ve entegrasyon testlerini calistirmak icin:
+- **Şarkı:** Müzik türü, yıl, maskelenmiş sanatçı adı ve söz ipuçlarından şarkının adını bulun. Son seviyede sanatçı açık gösterilir.
+- **Bayrak:** Bulanık görselden ülkeyi bulun.
+- **Minecraft:** Görseldeki eşyanın adını bulun.
+- **Karışık:** Bu üç kategori arasından rastgele tur açılır.
 
-```bash
-bun test
-```
+Sohbet modunda cevabı kanala yazın; buton modunda dört seçenekten birini seçin. Türkçe karakterler ve küçük yazım hataları tolere edilir.
+Şarkı modunda yalnızca sanatçı adı yeterli değildir. Sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
 
-Tip kontrolu icin:
+Her tur 25 saniye sürer. Görsel 5 saniyede bir netleşir; seviye 5'ten 1'e doğru puan 50'den 10'a düşer.
+Netleştir butonu seviyeyi bir kademe düşürür, turu atla butonu cevabı açar ve puan vermez.
+Tur bitince zamanlayıcı ve buton dinleyicisi kapatılır; eski turun etkileşimleri yeni turu değiştirmez.
 
-```bash
-bun run typecheck
-```
+Şarkı modu metin ve görsel ipuçlarıyla oynanır; sesli kanala bağlanmaz ve müzik çalmaz.
+Şarkı görselleri temsili müzik kartlarıdır, orijinal albüm kapakları değildir.
 
 ## Komutlar
 
-- `/oyun` - Kategori (sarki, bayrak, minecraft, karisik), oyun modu ve tur sayisi secerek oyunu baslatir.
-- `/bitir` - Kanalda devam eden oyunu sonlandirir.
-- `/siralama` - Sunucunun en yuksek puanli oyuncularini listeler.
-- `/profil` - Oyuncunun skor, basari ve kategori istatistiklerini gosterir.
-- `/yardim` - Kademeli puanlama sistemi ve oyun rehberini gosterir.
+- `/oyun` — Yeni oyun başlatır.
+- `/bitir` — Kanaldaki oyunu sonlandırır.
+- `/sıralama` — Sunucu liderlik tablosunu gösterir.
+- `/profil` — Oyuncunun puan ve tahmin istatistiklerini gösterir.
+- `/yardım` — Kuralları ve puanlamayı gösterir.
+
+## Geliştirme
+
+```sh
+bun run dev
+bun run typecheck
+bun test
+```
+
+Şarkı verileri `data/songs.json`, kart üreticisi `scripts/generateSongAssets.ts` içindedir.
+Veri setini değiştirdikten sonra kartları yeniden üretin:
+
+```sh
+bun run generate:assets
+```
+
+İstatistikler `data/stats.db` içinde saklanır ve Git'e dahil edilmez. Botu başka bir makineye taşırken bu dosyayı ayrıca yedekleyin; açık veritabanını kopyalamadan önce botu durdurun.
