@@ -9,11 +9,14 @@ import {
   ActivityType,
   REST,
   Routes,
-  ChatInputCommandInteraction
+  ChatInputCommandInteraction,
+  Events,
+  VoiceChannel
 } from "discord.js";
 import { CONFIG } from "./config";
 import { activeSessions } from "./gameSession";
 import { dataManager } from "./dataManager";
+import { startVoiceGame } from "./voiceGame";
 
 import * as oyunCmd from "./commands/oyun";
 import * as bitirCmd from "./commands/bitir";
@@ -36,11 +39,12 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates
   ]
 });
 
-client.once("ready", async () => {
+client.once(Events.ClientReady, async () => {
   console.log("=".repeat(60));
   console.log(`[*] BOT AKTIF (TypeScript / Bun): ${client.user?.tag} (ID: ${client.user?.id})`);
   console.log(`[*] Sunucu Sayisi: ${client.guilds.cache.size}`);
@@ -68,6 +72,25 @@ client.once("ready", async () => {
   client.user?.setActivity("🎵 Şarkı, 🎌 Bayrak & ⛏️ Minecraft | /oyun", {
     type: ActivityType.Competing
   });
+  await startConfiguredVoiceGame();
+});
+
+async function startConfiguredVoiceGame(): Promise<void> {
+  if (!CONFIG.VOICE_CHANNEL_ID || activeSessions.has(CONFIG.VOICE_CHANNEL_ID)) return;
+  try {
+    const channel = await client.channels.fetch(CONFIG.VOICE_CHANNEL_ID);
+    if (!(channel instanceof VoiceChannel)) {
+      throw new Error("VOICE_CHANNEL_ID erişilebilir bir sunucu ses kanalı olmalı.");
+    }
+    await startVoiceGame(channel, client.user!, CONFIG.DEFAULT_ROUNDS);
+    console.log(`Sesli oyun aktif: ${channel.name} (${channel.id})`);
+  } catch (error) {
+    console.error("Otomatik sesli oyun açılamadı:", error instanceof Error ? error.message : error);
+  }
+}
+
+client.on(Events.GuildCreate, () => {
+  void startConfiguredVoiceGame();
 });
 
 client.on("interactionCreate", async interaction => {
@@ -99,7 +122,12 @@ client.on("messageCreate", async message => {
   const session = activeSessions.get(channelId);
 
   if (session && session.isRunning && !session.roundFinished) {
-    await session.handleChatGuess(message);
+    try {
+      await session.handleChatGuess(message);
+    } catch (error) {
+      console.error("Tahmin işlenemedi:", error);
+      await session.endGame("Oyun hatası nedeniyle oturum kapatıldı.").catch(console.error);
+    }
   }
 });
 
@@ -114,7 +142,10 @@ function main() {
   }
 
   console.log("[*] TypeScript / discord.js botu baslatiliyor...");
-  client.login(CONFIG.BOT_TOKEN);
+  void client.login(CONFIG.BOT_TOKEN).catch(error => {
+    console.error("Bot bağlanamadı:", error instanceof Error ? error.message : error);
+    process.exitCode = 1;
+  });
 }
 
 main();

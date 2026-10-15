@@ -3,11 +3,12 @@
  */
 
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ override: true });
 
 export const CONFIG = {
   // Discord Bot Token
   BOT_TOKEN: process.env.DISCORD_TOKEN || process.env.BOT_TOKEN || "",
+  VOICE_CHANNEL_ID: process.env.VOICE_CHANNEL_ID || "",
   
   // Komut Prefix
   COMMAND_PREFIX: process.env.COMMAND_PREFIX || "!",

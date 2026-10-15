@@ -5,6 +5,7 @@ import { activeSessions, GameSession } from "../src/gameSession";
 import { dataManager } from "../src/dataManager";
 import { db } from "../src/database";
 import { imageProcessor } from "../src/imageProcessor";
+import * as previews from "../src/songPreview";
 
 function createSession(mode = "chat") {
   const collectors: Array<EventEmitter & { stop: Mock<() => void> }> = [];
@@ -86,4 +87,56 @@ test("eski zamanlayıcı yeni turun puanını düşürmez", async () => {
   await Promise.resolve();
   expect(session.currentLevel).toBe(5);
   expect(clear).toHaveBeenCalled();
+});
+
+test("ses başlamadan tahmin açılmaz ve kapanan oturum yeniden canlanmaz", async () => {
+  const { session, user, collectors } = createSession("voice");
+  const item = dataManager.songs[0]!;
+  spyOn(previews, "resolveSongPreview").mockResolvedValue({
+    item,
+    previewUrl: "https://audio-ssl.itunes.apple.com/preview.m4a",
+    sourceUrl: "https://music.apple.com/tr/album/song/123"
+  });
+  const entered = Promise.withResolvers<void>();
+  const ready = Promise.withResolvers<void>();
+  const destroy = mock(() => {});
+  session.audio = {
+    play() { entered.resolve(); return ready.promise; },
+    stop() {},
+    destroy
+  };
+  const pending = session.nextRound();
+  await entered.promise;
+  expect(await session.handleChatGuess({ content: item.name, author: user } as Message)).toBe(false);
+  expect(session.scores.has(user.id)).toBe(false);
+  await session.endGame();
+  ready.resolve();
+  await pending;
+  expect(session.roundFinished).toBe(true);
+  expect(collectors).toHaveLength(0);
+  expect(destroy).toHaveBeenCalledTimes(1);
+});
+
+test("sesli turda doğru cevap bir kez puan getirir ve sesi durdurur", async () => {
+  const { session, user } = createSession("voice");
+  const item = dataManager.songs[0]!;
+  spyOn(previews, "resolveSongPreview").mockResolvedValue({
+    item,
+    previewUrl: "https://audio-ssl.itunes.apple.com/preview.m4a",
+    sourceUrl: "https://music.apple.com/tr/album/song/123"
+  });
+  let playing = false;
+  session.audio = {
+    async play() { playing = true; },
+    stop() { playing = false; },
+    destroy() { playing = false; }
+  };
+  await session.nextRound();
+  expect(playing).toBe(true);
+  const first = session.handleChatGuess({ content: item.name, author: user } as Message);
+  expect(playing).toBe(false);
+  expect(await session.handleChatGuess({ content: item.name, author: user } as Message)).toBe(false);
+  expect(session.scores.get(user.id)?.score).toBe(50);
+  await session.endGame();
+  await first;
 });

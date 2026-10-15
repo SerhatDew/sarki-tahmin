@@ -13,12 +13,14 @@ cp .env.example .env
 
 PowerShell'de dosyayı kopyalamak için `Copy-Item .env.example .env` kullanabilirsiniz.
 `.env` içindeki `DISCORD_TOKEN` değerini kendi bot tokeninizle değiştirin. Tokeni paylaşmayın veya repoya eklemeyin.
+Yerel `.env` değerleri, aynı isimdeki ortam değişkenlerinden önceliklidir.
 
 Discord Developer Portal üzerinden:
 
 1. Uygulamanın **Bot** sayfasında **Message Content Intent** seçeneğini açın. Sohbet tahminleri için gereklidir.
 2. Botu sunucuya `bot` ve `applications.commands` kapsamlarıyla davet edin.
 3. Oyun kanalında kanalı görüntüleme, mesaj gönderme, bağlantı yerleştirme ve dosya ekleme izinlerini verin.
+Sesli mod için hedef ses kanalında **Bağlan** ve **Konuş** izinleri de gerekir.
 
 ```sh
 bun start
@@ -42,8 +44,30 @@ Her tur 25 saniye sürer. Görsel 5 saniyede bir netleşir; seviye 5'ten 1'e do�
 Netleştir butonu seviyeyi bir kademe düşürür, turu atla butonu cevabı açar ve puan vermez.
 Tur bitince zamanlayıcı ve buton dinleyicisi kapatılır; eski turun etkileşimleri yeni turu değiştirmez.
 
-Şarkı modu metin ve görsel ipuçlarıyla oynanır; sesli kanala bağlanmaz ve müzik çalmaz.
 Şarkı görselleri temsili müzik kartlarıdır, orijinal albüm kapakları değildir.
+
+## Sesli şarkı tahmini
+
+Sesli mod için FFmpeg'in `libopus` desteğiyle PATH üzerinde bulunması gerekir.
+Başka bir konumdaysa `.env` içinde `FFMPEG_PATH` değerini çalıştırılabilir dosyanın
+tam yoluna ayarlayın. `@discordjs/voice` ve DAVE şifreleme bağımlılığı kurulumda gelir;
+ayrıca Opus eklentisi kurmak gerekmez.
+
+`/oyun` komutunda **Şarkı ve Müzik** kategorisini, **Sesli şarkı tahmini** modunu
+ve isteğe bağlı `ses_kanali` seçeneğini seçin. Kanal seçilmezse katıldığınız ses
+kanalı kullanılır. Tahminleri ve `/bitir` komutunu ses kanalının sohbetine yazın.
+
+Bot iTunes Search API üzerinden başlık ve sanatçıyla eşleşen gerçek önizlemeleri
+bulur ve en fazla 25 saniye çalar. Yanlış eser, farklı sanatçı ve uygun önizlemesi
+olmayan sonuçlar kullanılmaz. Cevap açıklandığında Apple Music kaynak bağlantısı
+gösterilir. Önizlemeler diske kaydedilmez.
+
+Doğru cevap, tur atlama veya oyun sonu sesi durdurur. Oyun bitince bot ses
+kanalından ayrılır. Aynı sunucuda aynı anda bir sesli oyun açılabilir.
+
+Başlangıçta otomatik oyun açmak için `.env` içinde `VOICE_CHANNEL_ID` değerini
+bir ses kanalı ID'sine ayarlayın; boş bırakılırsa yalnızca slash komutları beklenir.
+Botun belirtilen sunucuya ekli olması ve kanal izinlerine sahip olması gerekir.
 
 ## Komutlar
 

@@ -5,6 +5,7 @@
 
 import {
   TextChannel,
+  type VoiceChannel,
   User,
   Message,
   EmbedBuilder,
@@ -20,6 +21,8 @@ import { CONFIG } from "./config";
 import { dataManager, type GameItem } from "./dataManager";
 import { imageProcessor } from "./imageProcessor";
 import { db } from "./database";
+import type { SongAudio } from "./voicePlayback";
+import { resolveSongPreview, type SongPreview } from "./songPreview";
 
 
 function delay(ms: number): Promise<void> {
@@ -61,13 +64,16 @@ export class GameSession {
   private roundTimer: NodeJS.Timeout | null = null;
   private buttonCollector: InteractionCollector<ButtonInteraction> | null = null;
   private wrongGuessCount: number = 0;
+  private currentPreview: SongPreview | null = null;
+  private songLookup: AbortController | null = null;
 
   constructor(
-    public channel: TextChannel,
+    public channel: TextChannel | VoiceChannel,
     public author: User,
     public category: string = "minecraft",
     public gameMode: string = "chat",
-    public totalRounds: number = CONFIG.DEFAULT_ROUNDS
+    public totalRounds: number = CONFIG.DEFAULT_ROUNDS,
+    public audio: SongAudio | null = null
   ) {
     this.currentCategory = category;
   }
@@ -96,6 +102,15 @@ export class GameSession {
       )
       .setColor(CONFIG.COLORS.PRIMARY)
       .setFooter({ text: "Hazırlayan: Şarkı Tahmin Sistemi • /yardım" });
+    if (this.audio) {
+      startEmbed
+        .setTitle("Sesli şarkı tahmini başlıyor")
+        .setDescription(
+          `Şarkı kesitleri bu ses kanalında çalacak. Cevapları kanalın sohbetine yazın.\n` +
+          `Toplam ${this.totalRounds} tur; her tur ${CONFIG.ROUND_DURATION} saniye.\n` +
+          "Şarkı adını erken bilen daha çok puan kazanır. Yalnızca sanatçı adı yeterli değildir."
+        );
+    }
 
     await this.channel.send({ embeds: [startEmbed] });
     await delay(3000);
@@ -121,37 +136,75 @@ export class GameSession {
       this.currentCategory = this.category;
     }
 
-    this.currentItem = dataManager.getRandomItem(this.currentCategory, Array.from(this.excludedIds));
-    this.excludedIds.add(this.currentItem.id);
-
-    this.currentLevel = 5;
     const round = this.currentRound;
+    this.currentPreview = null;
+    if (this.audio) {
+      const lookup = new AbortController();
+      this.songLookup = lookup;
+      try {
+        this.currentPreview = await this.selectVoiceSong(lookup.signal);
+      } catch (error) {
+        if (!this.isRunning || lookup.signal.aborted || this.currentRound !== round) return;
+        console.error("Şarkı önizlemesi hazırlanamadı:", error);
+        await this.endGame("Şarkı kaynağına erişilemedi; sesli oyun kapatıldı.");
+        return;
+      }
+      if (!this.isRunning || this.currentRound !== round) return;
+      this.currentItem = this.currentPreview.item;
+    } else {
+      this.currentItem = dataManager.getRandomItem(this.currentCategory, Array.from(this.excludedIds));
+    }
+    this.excludedIds.add(this.currentItem.id);
+    this.currentLevel = 5;
     this.wrongGuessCount = 0;
 
-    const imgBuffer = await imageProcessor.getBlurredImageBuffer(
-      this.currentCategory,
-      this.currentItem.id,
-      this.currentLevel
-    );
-    if (!this.isRunning || this.currentRound !== round) return;
-    const attachment = new AttachmentBuilder(imgBuffer, { name: `round_${this.currentRound}.png` });
-
-    const embed = this.createRoundEmbed(`round_${this.currentRound}.png`);
-    const components = this.createRoundComponents();
-
+    const files: AttachmentBuilder[] = [];
+    let filename: string | undefined;
+    if (!this.audio) {
+      const imgBuffer = await imageProcessor.getBlurredImageBuffer(
+        this.currentCategory, this.currentItem.id, this.currentLevel
+      );
+      if (!this.isRunning || this.currentRound !== round) return;
+      filename = `round_${this.currentRound}.png`;
+      files.push(new AttachmentBuilder(imgBuffer, { name: filename }));
+    }
     const message = await this.channel.send({
-      files: [attachment],
-      embeds: [embed],
-      components
+      files,
+      embeds: [this.createRoundEmbed(filename)],
+      components: this.createRoundComponents()
     });
     if (!this.isRunning || this.currentRound !== round) {
       await message.edit({ components: [] });
       return;
     }
     this.gameMessage = message;
+    if (this.audio && this.currentPreview) {
+      try {
+        await this.audio.play(this.currentPreview.previewUrl);
+      } catch (error) {
+        if (!this.isRunning) return;
+        console.error("Şarkı çalınamadı:", error);
+        await this.endGame("Ses oynatılamadı; bağlantı kapatıldı.");
+        return;
+      }
+      if (!this.isRunning || this.currentRound !== round) return;
+    }
     this.roundFinished = false;
     this.startTimerLoop();
     this.setupButtonCollector();
+  }
+
+  private async selectVoiceSong(signal: AbortSignal): Promise<SongPreview> {
+    let pool = dataManager.songs.filter(song => !this.excludedIds.has(song.id));
+    if (pool.length === 0) pool = [...dataManager.songs];
+    while (pool.length > 0) {
+      signal.throwIfAborted();
+      const index = Math.floor(Math.random() * pool.length);
+      const [song] = pool.splice(index, 1);
+      const preview = await resolveSongPreview(song!, signal);
+      if (preview) return preview;
+    }
+    throw new Error("Katalogdaki şarkılar için ses önizlemesi bulunamadı.");
   }
 
   private getSongHint(level: number, item: GameItem): string {
@@ -168,7 +221,7 @@ export class GameSession {
     }
   }
 
-  private createRoundEmbed(attachmentName: string): EmbedBuilder {
+  private createRoundEmbed(attachmentName?: string): EmbedBuilder {
     const points = CONFIG.POINTS_MAP[this.currentLevel] ?? 10;
     const progPct = Math.floor(((this.currentRound - 1) / Math.max(1, this.totalRounds)) * 100);
     const filledCnt = Math.floor(progPct / 10);
@@ -187,13 +240,13 @@ export class GameSession {
       .setTitle(`🎯 Tur ${this.currentRound} / ${this.totalRounds} — ${this.getCategoryTitle()}`)
       .setDescription(
         `**Oyun İlerlemesi:** \`[${progBar}]\` (%${progPct})\n` +
-        `**Bulanıklık Seviyesi:** ${levelStr}\n` +
+        (this.audio ? `**İpucu Seviyesi:** ${this.currentLevel}\n` : `**Bulanıklık Seviyesi:** ${levelStr}\n`) +
         `**Bu Turun Değeri:** ⭐ **${points} Puan**\n\n` +
-        (this.gameMode === "chat"
+        (this.gameMode !== "buttons"
           ? "💬 👉 **Tahmininizi sohbete doğrudan yazın!**"
           : "🔘 👉 **Aşağıdaki butonlardan doğru şıkkı seçin!**")
       )
-      .setImage(`attachment://${attachmentName}`)
+      .setImage(attachmentName ? `attachment://${attachmentName}` : null)
       .setColor(this.currentLevel > 2 ? CONFIG.COLORS.PRIMARY : CONFIG.COLORS.WARNING)
       .setFooter({ text: `Şarkı/Görsel Tahmin Sistemi • Tur Süresi: ${CONFIG.ROUND_DURATION}s` });
 
@@ -247,7 +300,7 @@ export class GameSession {
     const controlRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId("action_clarify")
-        .setLabel("🔍 Netleştir (-10 Puan)")
+        .setLabel(this.audio ? "İpucu (-10 Puan)" : "Netleştir (-10 Puan)")
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId("action_skip")
@@ -268,6 +321,9 @@ export class GameSession {
     this.roundTimer = null;
     this.buttonCollector?.stop("round-ended");
     this.buttonCollector = null;
+    this.songLookup?.abort();
+    this.songLookup = null;
+    this.audio?.stop();
   }
 
   private startTimerLoop(): void {
@@ -302,6 +358,13 @@ export class GameSession {
     const level = this.currentLevel;
 
     try {
+      if (this.audio) {
+        await message.edit({
+          embeds: [this.createRoundEmbed()],
+          components: this.createRoundComponents()
+        });
+        return;
+      }
       const imgBuffer = await imageProcessor.getBlurredImageBuffer(
         this.currentCategory,
         this.currentItem!.id,
@@ -344,7 +407,7 @@ export class GameSession {
         if (this.currentLevel > 1) {
           this.currentLevel--;
           await interaction.reply({
-            content: `🔍 **${interaction.user.displayName}** görseli bir kademe netleştirdi! (Yeni Seviye: ${this.currentLevel})`,
+            content: `**${interaction.user.displayName}** bir ipucu açtı. Yeni seviye: ${this.currentLevel}.`,
             ephemeral: false
           });
           await this.updateImageAndEmbed();
@@ -455,7 +518,7 @@ export class GameSession {
           ? `🌟 **Doğru Cevap:** **${this.currentItem!.name}** — *${this.currentItem!.artist}* (${this.currentItem!.year})\n` +
             `💿 **Albüm:** *${this.currentItem!.album}*  •  🎧 **Tür:** \`${this.currentItem!.genre}\`\n`
           : `🌟 **Doğru Cevap:** **${this.currentItem!.name}**\n`) +
-        `⭐ **Kazanılan:** +${points} Puan *(Seviye ${this.currentLevel} Bulanıklığında)*\n` +
+        `**Kazanılan:** +${points} Puan *(Seviye ${this.currentLevel})*\n` +
         `👤 **${user.displayName} Toplam Puanı:** **${currentScore.score} Puan**\n\n` +
         `⏱️ *Sıradaki tur 4 saniye içinde başlıyor...*`
       )
@@ -463,6 +526,9 @@ export class GameSession {
       .setImage("attachment://reveal.png")
       .setColor(CONFIG.COLORS.SUCCESS)
       .setFooter({ text: `Tur ${this.currentRound}/${this.totalRounds} Tamamlandı` });
+    if (this.currentPreview) {
+      embed.addFields({ name: "Kaynak", value: `[Apple Music / iTunes](${this.currentPreview.sourceUrl})` });
+    }
 
     if (this.gameMessage) {
       try {
@@ -510,6 +576,9 @@ export class GameSession {
       .setImage("attachment://timeout.png")
       .setColor(CONFIG.COLORS.DANGER)
       .setFooter({ text: `Tur ${this.currentRound}/${this.totalRounds} Tamamlandı` });
+    if (this.currentPreview) {
+      embed.addFields({ name: "Kaynak", value: `[Apple Music / iTunes](${this.currentPreview.sourceUrl})` });
+    }
 
     if (this.gameMessage) {
       try {
@@ -527,6 +596,7 @@ export class GameSession {
     this.isRunning = false;
     this.roundFinished = true;
     this.stopRound();
+    this.audio?.destroy();
     if (activeSessions.get(this.channel.id) === this) activeSessions.delete(this.channel.id);
 
     const guildId = this.channel.guildId || "0";
@@ -544,6 +614,7 @@ export class GameSession {
     const embed = new EmbedBuilder()
       .setTitle("🏆 OYUN SONU — LİDERLİK TABLOSU")
       .setDescription(
+        `${reason}\n\n` +
         `**Kategori:** ${this.getCategoryTitle(this.category)}\n` +
         `**Tamamlanan Tur:** ${this.currentRound > this.totalRounds ? this.totalRounds : this.currentRound} / ${this.totalRounds}\n\n`
       )

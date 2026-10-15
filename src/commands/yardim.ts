@@ -17,6 +17,9 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
       "Bu botta albüm kapakları, bayraklar ve eşyalar kademeli olarak blurlu (bulanık) şekilde ekrana gelir.\n" +
       "Şarkı modunda her turda müzik türü, çıkış yılı, sanatçı ve şarkı sözü ipuçları açılır!\n" +
       "Süre geçtikçe veya oyuncular tahmin yaptıkça görsel yavaş yavaş netleşir!\n\n" +
+      "**Sesli mod:** `/oyun` içinde şarkı kategorisini ve sesli modu seçin. " +
+      "Bot ses kanalında kesit çalar; şarkı adını aynı kanalın sohbetine yazın. " +
+      "Kanalda `/bitir` ile sesi ve oturumu kapatabilirsiniz.\n\n" +
       "**🎯 Kademeli Puan Cetveli:**\n" +
       "• 🟥 **Seviye 5 (En Bulanık):** ⭐ **50 Puan** (Görsel neredeyse görünmezken)\n" +
       "• 🟧 **Seviye 4:** ⭐ **40 Puan**\n" +
