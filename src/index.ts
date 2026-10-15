@@ -17,7 +17,7 @@ import {
 import { CONFIG } from "./config";
 import { activeSessions } from "./gameSession";
 import { dataManager } from "./dataManager";
-import { startVoiceGame } from "./voiceGame";
+import { hasHumanListeners, startVoiceGame, stopEmptyVoiceGame } from "./voiceGame";
 
 import * as oyunCmd from "./commands/oyun";
 import * as bitirCmd from "./commands/bitir";
@@ -82,6 +82,10 @@ async function startConfiguredVoiceGame(): Promise<void> {
     if (!(channel instanceof VoiceChannel)) {
       throw new Error("VOICE_CHANNEL_ID erişilebilir bir sunucu ses kanalı olmalı.");
     }
+    if (!hasHumanListeners(channel)) {
+      console.log(`Ses kanalı boş; oyuncu bekleniyor: ${channel.name} (${channel.id})`);
+      return;
+    }
     await startVoiceGame(channel, client.user!, CONFIG.DEFAULT_ROUNDS);
     console.log(`Sesli oyun aktif: ${channel.name} (${channel.id})`);
   } catch (error) {
@@ -91,6 +95,18 @@ async function startConfiguredVoiceGame(): Promise<void> {
 
 client.on(Events.GuildCreate, () => {
   void startConfiguredVoiceGame();
+});
+
+client.on(Events.VoiceStateUpdate, (previous, current) => {
+  if (previous.channelId === current.channelId) return;
+  if (previous.channel instanceof VoiceChannel) {
+    void stopEmptyVoiceGame(previous.channel).catch(error => {
+      console.error("Boş sesli oyun kapatılamadı:", error);
+    });
+  }
+  if (current.channelId === CONFIG.VOICE_CHANNEL_ID && current.member?.user.bot === false) {
+    void startConfiguredVoiceGame();
+  }
 });
 
 client.on("interactionCreate", async interaction => {

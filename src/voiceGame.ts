@@ -3,7 +3,21 @@ import { CONFIG } from "./config";
 import { activeSessions, GameSession } from "./gameSession";
 import { VoicePlayback } from "./voicePlayback";
 
+export function hasHumanListeners(channel: VoiceChannel): boolean {
+  return channel.members.some(member => !member.user.bot);
+}
+
+export async function stopEmptyVoiceGame(channel: VoiceChannel): Promise<void> {
+  const session = activeSessions.get(channel.id);
+  if (session?.audio && !hasHumanListeners(channel)) {
+    await session.endGame("Ses kanalında oyuncu kalmadı; oyun kapatıldı.");
+  }
+}
+
 export async function startVoiceGame(channel: VoiceChannel, author: User, rounds = CONFIG.DEFAULT_ROUNDS): Promise<GameSession> {
+  if (!hasHumanListeners(channel)) {
+    throw new Error("Sesli oyun için kanalda en az bir oyuncu bulunmalı.");
+  }
   const permissions = channel.permissionsFor(channel.client.user!);
   const required = [
     PermissionFlagsBits.ViewChannel,
@@ -33,6 +47,7 @@ export async function startVoiceGame(channel: VoiceChannel, author: User, rounds
   activeSessions.set(channel.id, session);
   try {
     await audio.connect();
+    await stopEmptyVoiceGame(channel);
     if (session.isRunning) await session.start();
     if (!session.isRunning) throw new Error("Sesli oyun hazırlanırken kapatıldı.");
     return session;

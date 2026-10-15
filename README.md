@@ -70,10 +70,12 @@ gösterilir. Önizlemeler diske kaydedilmez.
 
 Doğru cevap, tur atlama veya oyun sonu sesi durdurur. Oyun bitince bot ses
 kanalından ayrılır. Aynı sunucuda aynı anda bir sesli oyun açılabilir.
+Kanalda insan oyuncu yokken sesli oyun başlamaz. Son oyuncu çıkınca oyun kapanır ve bot sesten ayrılır; diğer botlar oyuncu sayılmaz.
 
 Başlangıçta otomatik oyun açmak için `.env` içinde `VOICE_CHANNEL_ID` değerini
 bir ses kanalı ID'sine ayarlayın; boş bırakılırsa yalnızca slash komutları beklenir.
 Botun belirtilen sunucuya ekli olması ve kanal izinlerine sahip olması gerekir.
+Kanal boşsa bot oyuncu bekler; ilk insan oyuncu katıldığında otomatik oyun başlar.
 
 ## Komutlar
 
