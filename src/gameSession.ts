@@ -576,7 +576,8 @@ export class GameSession {
     if (activeSessions.get(this.channel.id) === this) activeSessions.delete(this.channel.id);
 
     const guildId = this.channel.guildId || "0";
-    db.recordGameFinish(guildId, this.channel.id, this.category, this.scores, this.currentRound);
+    const completedRounds = this.history.length;
+    db.recordGameFinish(guildId, this.channel.id, this.category, this.scores, completedRounds);
 
     const sortedScores = Array.from(this.scores.values()).sort((a, b) => b.score - a.score);
 
@@ -585,7 +586,7 @@ export class GameSession {
       .setDescription(
         `${reason}\n\n` +
         `**Kategori:** ${this.getCategoryTitle(this.category)}\n` +
-        `**Tamamlanan Tur:** ${this.currentRound > this.totalRounds ? this.totalRounds : this.currentRound} / ${this.totalRounds}\n\n`
+        `**Tamamlanan Tur:** ${completedRounds} / ${this.totalRounds}\n\n`
       )
       .setColor(CONFIG.COLORS.GOLD);
 

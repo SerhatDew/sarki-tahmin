@@ -47,6 +47,7 @@ Türkçe karakterler ve küçük yazım hataları tolere edilir. Şarkı modunda
 Her tur 25 saniye sürer. Görsel 5 saniyede bir netleşir; seviye 5'ten 1'e doğru puan 50'den 10'a düşer.
 Netleştir butonu seviyeyi bir kademe düşürür, turu atla butonu cevabı açar ve puan vermez.
 Tur bitince zamanlayıcı durur ve paneldeki kontroller kapanır; eski turun buton ve formları yeni turu değiştirmez.
+Oyun sonundaki tur sayısı yalnızca tamamlanan turları içerir; erken kapatılan tur bu sayıya eklenmez.
 
 Şarkı görselleri temsili müzik kartlarıdır, orijinal albüm kapakları değildir.
 

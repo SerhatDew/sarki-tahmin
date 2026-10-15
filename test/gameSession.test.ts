@@ -1,8 +1,12 @@
 import { afterEach, expect, mock, spyOn, test } from "bun:test";
+import { Database } from "bun:sqlite";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { MessageFlags, type ActionRowBuilder, type AttachmentBuilder, type ButtonBuilder, type ButtonInteraction, type EmbedBuilder, type Message, type ModalBuilder, type ModalSubmitInteraction, type TextChannel, type User } from "discord.js";
 import { activeSessions, GameSession } from "../src/gameSession";
 import { dataManager } from "../src/dataManager";
-import { db } from "../src/database";
+import { AppDatabase, db } from "../src/database";
 import { imageProcessor } from "../src/imageProcessor";
 import * as previews from "../src/songPreview";
 
@@ -287,3 +291,34 @@ test("süre dolunca cevap ve sonraki tur aynı panelde gösterilir", async () =>
   expect(reveal?.embeds?.[0]?.data.description).toContain(answer);
   expect(panels.at(-1)?.attachments).toEqual([]);
 });
+
+for (const scenario of [
+  { name: "normal bitiş", currentRound: 4, completed: 3 },
+  { name: "erken bitiş", currentRound: 2, completed: 1 }
+]) {
+  test(`oyun geçmişi yalnızca tamamlanan turları sayar: ${scenario.name}`, async () => {
+    const { session, user, finish } = createSession();
+    const directory = mkdtempSync(join(tmpdir(), "sarki-history-"));
+    const filename = join(directory, "stats.db");
+    const storage = new AppDatabase(filename);
+    try {
+      finish.mockImplementation((...args) => storage.recordGameFinish(...args));
+      session.currentRound = scenario.currentRound;
+      session.scores.set(user.id, { username: user.displayName, score: 50 });
+      for (let round = 1; round <= scenario.completed; round++) {
+        session.history.push({ round, item: "Dönence", winner: user.displayName, points: 50, level: 5 });
+      }
+      await session.endGame();
+      const reader = new Database(filename, { readonly: true });
+      try {
+        const result = reader.query<{ total_rounds: number }, []>("SELECT total_rounds FROM game_history").get();
+        expect(result?.total_rounds).toBe(scenario.completed);
+      } finally {
+        reader.close();
+      }
+    } finally {
+      storage.close();
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+}
