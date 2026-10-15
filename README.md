@@ -18,7 +18,7 @@ kapatılır; önceki turdan geciken etkileşimler yeni turun puanını değişti
 
 ## Gereksinimler
 
-- Bun (v1.2 veya uzeri)
+- Bun 1.4.2 veya üzeri
 - Discord Bot Token
 
 ## Kurulum
@@ -26,7 +26,7 @@ kapatılır; önceki turdan geciken etkileşimler yeni turun puanını değişti
 1. Bagimliliklari yukleyin:
 
 ```bash
-bun install
+bun install --frozen-lockfile
 ```
 
 2. `.env` dosyasini olusturun ve bot tokeninizi girin:
