@@ -13,6 +13,9 @@ Discord uzerinde calisan kademeli sarkı ve gorsel tahmin oyunu botu. Bun ve Typ
 Şarkı modunda cevap şarkının adıdır; yalnızca sanatçı adı puan kazandırmaz.
 Sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
 
+Her turun ayrı zamanlayıcısı vardır. Tur bitince zamanlayıcı ve buton dinleyicisi
+kapatılır; önceki turdan geciken etkileşimler yeni turun puanını değiştirmez.
+
 ## Gereksinimler
 
 - Bun (v1.2 veya uzeri)

@@ -12,7 +12,9 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ComponentType
+  ComponentType,
+  type ButtonInteraction,
+  type InteractionCollector
 } from "discord.js";
 import { CONFIG } from "./config";
 import { dataManager, type GameItem } from "./dataManager";
@@ -43,7 +45,7 @@ export class GameSession {
   public currentItem: GameItem | null = null;
   public currentCategory: string;
   public currentLevel: number = 5;
-  public roundFinished: boolean = false;
+  public roundFinished: boolean = true;
   public excludedIds: Set<string> = new Set();
 
   public scores: Map<string, { username: string; score: number }> = new Map();
@@ -56,7 +58,8 @@ export class GameSession {
   }> = [];
 
   private gameMessage: Message | null = null;
-  private timerActive: boolean = false;
+  private roundTimer: NodeJS.Timeout | null = null;
+  private buttonCollector: InteractionCollector<ButtonInteraction> | null = null;
   private wrongGuessCount: number = 0;
 
   constructor(
@@ -102,6 +105,9 @@ export class GameSession {
   public async nextRound(): Promise<void> {
     if (!this.isRunning) return;
 
+    this.stopRound();
+    this.roundFinished = true;
+
     this.currentRound++;
     if (this.currentRound > this.totalRounds) {
       await this.endGame("Oyun tamamlandı!");
@@ -119,7 +125,7 @@ export class GameSession {
     this.excludedIds.add(this.currentItem.id);
 
     this.currentLevel = 5;
-    this.roundFinished = false;
+    const round = this.currentRound;
     this.wrongGuessCount = 0;
 
     const imgBuffer = await imageProcessor.getBlurredImageBuffer(
@@ -127,17 +133,23 @@ export class GameSession {
       this.currentItem.id,
       this.currentLevel
     );
+    if (!this.isRunning || this.currentRound !== round) return;
     const attachment = new AttachmentBuilder(imgBuffer, { name: `round_${this.currentRound}.png` });
 
     const embed = this.createRoundEmbed(`round_${this.currentRound}.png`);
     const components = this.createRoundComponents();
 
-    this.gameMessage = await this.channel.send({
+    const message = await this.channel.send({
       files: [attachment],
       embeds: [embed],
       components
     });
-
+    if (!this.isRunning || this.currentRound !== round) {
+      await message.edit({ components: [] });
+      return;
+    }
+    this.gameMessage = message;
+    this.roundFinished = false;
     this.startTimerLoop();
     this.setupButtonCollector();
   }
@@ -251,27 +263,43 @@ export class GameSession {
     return rows;
   }
 
-  private async startTimerLoop(): Promise<void> {
-    this.timerActive = true;
-    const steps = Math.floor(CONFIG.ROUND_DURATION / CONFIG.BLUR_STEP_SECONDS);
+  private stopRound(): void {
+    if (this.roundTimer) clearTimeout(this.roundTimer);
+    this.roundTimer = null;
+    this.buttonCollector?.stop("round-ended");
+    this.buttonCollector = null;
+  }
 
-    for (let i = 0; i < steps; i++) {
-      await delay(CONFIG.BLUR_STEP_SECONDS * 1000);
-      if (!this.timerActive || this.roundFinished || !this.isRunning) return;
-
+  private startTimerLoop(): void {
+    const round = this.currentRound;
+    const step = CONFIG.BLUR_STEP_SECONDS * 1000;
+    const deadline = Date.now() + CONFIG.ROUND_DURATION * 1000;
+    const tick = async () => {
+      if (!this.isRunning || this.roundFinished || this.currentRound !== round) return;
+      if (Date.now() >= deadline) {
+        await this.onRoundTimeout();
+        return;
+      }
       if (this.currentLevel > 1) {
         this.currentLevel--;
         await this.updateImageAndEmbed();
       }
-    }
-
-    if (!this.roundFinished && this.timerActive) {
-      await this.onRoundTimeout();
-    }
+      if (this.isRunning && !this.roundFinished && this.currentRound === round) {
+        this.roundTimer = setTimeout(run, Math.min(step, Math.max(0, deadline - Date.now())));
+      }
+    };
+    const run = () => {
+      this.roundTimer = null;
+      void tick().catch(error => console.error("Tur zamanlayıcısı hatası:", error));
+    };
+    this.roundTimer = setTimeout(run, Math.min(step, CONFIG.ROUND_DURATION * 1000));
   }
 
   private async updateImageAndEmbed(): Promise<void> {
-    if (!this.gameMessage || this.roundFinished) return;
+    if (!this.gameMessage || this.roundFinished || !this.isRunning) return;
+    const message = this.gameMessage;
+    const round = this.currentRound;
+    const level = this.currentLevel;
 
     try {
       const imgBuffer = await imageProcessor.getBlurredImageBuffer(
@@ -279,11 +307,12 @@ export class GameSession {
         this.currentItem!.id,
         this.currentLevel
       );
+      if (!this.isRunning || this.roundFinished || this.currentRound !== round || this.currentLevel !== level) return;
       const filename = `round_${this.currentRound}_lvl${this.currentLevel}.png`;
       const attachment = new AttachmentBuilder(imgBuffer, { name: filename });
       const embed = this.createRoundEmbed(filename);
 
-      await this.gameMessage.edit({
+      await message.edit({
         files: [attachment],
         embeds: [embed],
         components: this.createRoundComponents()
@@ -300,9 +329,11 @@ export class GameSession {
       componentType: ComponentType.Button,
       time: (CONFIG.ROUND_DURATION + 5) * 1000
     });
+    this.buttonCollector = collector;
+    const round = this.currentRound;
 
     collector.on("collect", async interaction => {
-      if (this.roundFinished) {
+      if (!this.isRunning || this.roundFinished || this.currentRound !== round) {
         await interaction.reply({ content: "Bu tur zaten tamamlandı!", ephemeral: true });
         return;
       }
@@ -324,15 +355,18 @@ export class GameSession {
       }
 
       if (id === "action_skip") {
-        await interaction.reply({ content: `⏩ **${interaction.user.displayName}** turu atladı!` });
-        this.timerActive = false;
-        await this.onRoundTimeout();
+        await Promise.all([
+          interaction.reply({ content: `**${interaction.user.displayName}** turu atladı.` }),
+          this.onRoundTimeout()
+        ]);
         return;
       }
 
       if (id === "action_stop") {
-        await interaction.reply({ content: `⏹️ **${interaction.user.displayName}** oyunu sonlandırdı.` });
-        await this.endGame("Oyun durduruldu.");
+        await Promise.all([
+          interaction.reply({ content: `**${interaction.user.displayName}** oyunu sonlandırdı.` }),
+          this.endGame("Oyun durduruldu.")
+        ]);
         return;
       }
 
@@ -340,8 +374,10 @@ export class GameSession {
       if (id.startsWith("choice_")) {
         const choiceId = id.replace("choice_", "");
         if (choiceId === this.currentItem?.id) {
-          await interaction.reply({ content: "✅ Doğru seçim!", ephemeral: true });
-          await this.onCorrectGuess(interaction.user);
+          await Promise.all([
+            interaction.reply({ content: "Doğru seçim!", ephemeral: true }),
+            this.onCorrectGuess(interaction.user)
+          ]);
         } else {
           const guildId = interaction.guildId || "0";
           db.recordGuess(
@@ -382,9 +418,9 @@ export class GameSession {
   }
 
   public async onCorrectGuess(user: User): Promise<void> {
-    if (this.roundFinished) return;
+    if (!this.isRunning || this.roundFinished || !this.currentItem) return;
     this.roundFinished = true;
-    this.timerActive = false;
+    this.stopRound();
 
     const points = CONFIG.POINTS_MAP[this.currentLevel] ?? 10;
     const currentScore = this.scores.get(user.id) || { username: user.displayName, score: 0 };
@@ -409,6 +445,7 @@ export class GameSession {
       0,
       this.currentItem!.name
     );
+    if (!this.isRunning) return;
     const origFile = new AttachmentBuilder(origBuffer, { name: "reveal.png" });
 
     const embed = new EmbedBuilder()
@@ -439,9 +476,9 @@ export class GameSession {
   }
 
   public async onRoundTimeout(): Promise<void> {
-    if (this.roundFinished) return;
+    if (!this.isRunning || this.roundFinished || !this.currentItem) return;
     this.roundFinished = true;
-    this.timerActive = false;
+    this.stopRound();
 
     this.history.push({
       round: this.currentRound,
@@ -457,6 +494,7 @@ export class GameSession {
       0,
       this.currentItem!.name
     );
+    if (!this.isRunning) return;
     const origFile = new AttachmentBuilder(origBuffer, { name: "timeout.png" });
 
     const embed = new EmbedBuilder()
@@ -485,11 +523,21 @@ export class GameSession {
   }
 
   public async endGame(reason: string = "Oyun bitti!"): Promise<void> {
+    if (!this.isRunning) return;
     this.isRunning = false;
-    this.timerActive = false;
+    this.roundFinished = true;
+    this.stopRound();
+    if (activeSessions.get(this.channel.id) === this) activeSessions.delete(this.channel.id);
 
     const guildId = this.channel.guildId || "0";
     db.recordGameFinish(guildId, this.channel.id, this.category, this.scores, this.currentRound);
+    if (this.gameMessage) {
+      try {
+        await this.gameMessage.edit({ components: [] });
+      } catch (error) {
+        console.warn("Oyun butonları kapatılamadı:", error);
+      }
+    }
 
     const sortedScores = Array.from(this.scores.values()).sort((a, b) => b.score - a.score);
 
@@ -533,6 +581,5 @@ export class GameSession {
     embed.setFooter({ text: "Yeni oyun başlatmak için: /oyun" });
 
     await this.channel.send({ files: [podiumFile], embeds: [embed] });
-    activeSessions.delete(this.channel.id);
   }
 }
