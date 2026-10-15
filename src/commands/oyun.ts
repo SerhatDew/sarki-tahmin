@@ -22,10 +22,10 @@ export const data = new SlashCommandBuilder()
       .setDescription("Oyun kategorisini seçin")
       .setRequired(true)
       .addChoices(
-        { name: "🎵 Şarkı ve Müzik", value: "songs" },
-        { name: "⛏️ Minecraft Eşyaları", value: "minecraft" },
-        { name: "🎌 Ülke Bayrakları", value: "flags" },
-        { name: "🎲 Karışık (Şarkı, Bayrak & Minecraft)", value: "mixed" }
+        { name: "Şarkı ve Müzik", value: "songs" },
+        { name: "Minecraft Eşyaları", value: "minecraft" },
+        { name: "Ülke Bayrakları", value: "flags" },
+        { name: "Karışık (Şarkı, Bayrak ve Minecraft)", value: "mixed" }
       )
   )
   .addStringOption(option =>
@@ -34,7 +34,7 @@ export const data = new SlashCommandBuilder()
       .setDescription("Tahmin yöntemini seçin")
       .setRequired(false)
       .addChoices(
-        { name: "Sohbetten tahmin", value: "chat" },
+        { name: "Formdan tahmin", value: "form" },
         { name: "Dört şıklı tahmin", value: "buttons" },
         { name: "Sesli şarkı tahmini", value: "voice" }
       )
@@ -56,7 +56,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const category = interaction.options.getString("kategori", true);
-  const mode = interaction.options.getString("mod") || "chat";
+  const mode = interaction.options.getString("mod") || "form";
   const rounds = interaction.options.getInteger("tur_sayisi") || CONFIG.DEFAULT_ROUNDS;
   if (mode === "voice") {
     if (category !== "songs") {
@@ -69,10 +69,10 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
       await interaction.reply({ content: "Bir ses kanalına katılın veya ses_kanali seçeneğini kullanın.", ephemeral: true });
       return;
     }
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
     try {
       await startVoiceGame(target, interaction.user, rounds);
-      await interaction.editReply(`Sesli oyun <#${target.id}> kanalında başladı. Tahminleri o kanalın sohbetine yazın.`);
+      await interaction.editReply(`Sesli oyun <#${target.id}> kanalında başladı. Ortak paneldeki Tahmin Et butonunu kullanın.`);
     } catch (error) {
       await interaction.editReply(error instanceof Error ? error.message : "Sesli oyun başlatılamadı.");
     }
@@ -81,7 +81,7 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
   const channel = interaction.channel;
   if (!channel || !(channel instanceof TextChannel)) {
     await interaction.reply({
-      content: "⚠️ Bu komut yalnızca sunucu metin kanallarında kullanılabilir!",
+      content: "Bu komut yalnızca sunucu metin kanallarında kullanılabilir.",
       ephemeral: true
     });
     return;
@@ -89,19 +89,20 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
 
   if (activeSessions.has(channel.id) && activeSessions.get(channel.id)!.isRunning) {
     await interaction.reply({
-      content: "⚠️ Bu kanalda zaten devam eden bir oyun var! Önce `/bitir` ile kapatabilirsiniz.",
+      content: "Bu kanalda zaten devam eden bir oyun var. Önce /bitir ile kapatabilirsiniz.",
       ephemeral: true
     });
     return;
   }
 
-
-  await interaction.reply({
-    content: `✅ **${interaction.user.displayName}** tarafından oyun oturumu başlatıldı!`,
-    ephemeral: false
-  });
-
   const session = new GameSession(channel, interaction.user, category, mode, rounds);
+  session.isRunning = true;
   activeSessions.set(channel.id, session);
-  await session.start();
+  try {
+    await interaction.reply({ content: "Oyun paneli hazırlanıyor.", ephemeral: true });
+    if (session.isRunning) await session.start();
+  } catch (error) {
+    await session.endGame("Oyun başlatılamadı.").catch(console.error);
+    throw error;
+  }
 }

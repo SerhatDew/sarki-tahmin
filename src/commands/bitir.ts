@@ -15,14 +15,14 @@ export async function execute(interaction: ChatInputCommandInteraction): Promise
 
   if (!session || !session.isRunning) {
     await interaction.reply({
-      content: "❌ Bu kanalda aktif bir oyun bulunmuyor.",
+      content: "Bu kanalda aktif bir oyun bulunmuyor.",
       ephemeral: true
     });
     return;
   }
 
-  await interaction.reply({
-    content: `⏹️ Oyun **${interaction.user.displayName}** tarafından bitirildi.`
-  });
-  await session.endGame("Kullanıcı tarafından bitirildi.");
+  await Promise.all([
+    interaction.reply({ content: "Oyun sonlandırıldı.", ephemeral: true }),
+    session.endGame("Kullanıcı tarafından bitirildi.")
+  ]);
 }

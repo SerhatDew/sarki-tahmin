@@ -1,6 +1,6 @@
 /**
  * src/index.ts - Discord Bot Ana Giriş Noktası (TypeScript & Bun)
- * Slash komutlarını yükler, senkronize eder ve mesaj dinleyicisini yönlendirir.
+ * Slash komutlarını senkronize eder; panel butonlarını ve tahmin formlarını yönlendirir.
  */
 
 import {
@@ -11,7 +11,8 @@ import {
   Routes,
   ChatInputCommandInteraction,
   Events,
-  VoiceChannel
+  VoiceChannel,
+  MessageFlags
 } from "discord.js";
 import { CONFIG } from "./config";
 import { activeSessions } from "./gameSession";
@@ -39,7 +40,6 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates
   ]
 });
@@ -69,7 +69,7 @@ client.once(Events.ClientReady, async () => {
   }
 
   // Durum mesaji
-  client.user?.setActivity("🎵 Şarkı, 🎌 Bayrak & ⛏️ Minecraft | /oyun", {
+  client.user?.setActivity("Şarkı, Bayrak ve Minecraft | /oyun", {
     type: ActivityType.Competing
   });
   await startConfiguredVoiceGame();
@@ -94,17 +94,35 @@ client.on(Events.GuildCreate, () => {
 });
 
 client.on("interactionCreate", async interaction => {
+  if (interaction.isButton() || interaction.isModalSubmit()) {
+    if (!interaction.customId.startsWith("game:")) return;
+    const session = interaction.channelId ? activeSessions.get(interaction.channelId) : undefined;
+    try {
+      if (!session) {
+        await interaction.reply({ content: "Bu oyun sona erdi. Yeni oyun için /oyun kullanın.", flags: MessageFlags.Ephemeral });
+      } else if (interaction.isButton()) {
+        await session.handleButtonInteraction(interaction);
+      } else {
+        await session.handleModalGuess(interaction);
+      }
+    } catch (error) {
+      console.error("Oyun etkileşimi işlenemedi:", error);
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({ content: "Tahmin işlenemedi.", flags: MessageFlags.Ephemeral }).catch(console.error);
+      }
+      await session?.endGame("Oyun hatası nedeniyle oturum kapatıldı.").catch(console.error);
+    }
+    return;
+  }
   if (!interaction.isChatInputCommand()) return;
-
   const command = commands.get(interaction.commandName);
   if (!command) return;
-
   try {
     await command.execute(interaction);
   } catch (error) {
-    console.error(`[-] '${interaction.commandName}' komutu yurutulurken hata:`, error);
+    console.error(`'${interaction.commandName}' komutu yürütülürken hata:`, error);
     const reply = {
-      content: "⚠️ Komut calistirilirken beklenmeyen bir hata olustu!",
+      content: "Komut çalıştırılırken beklenmeyen bir hata oluştu.",
       ephemeral: true
     };
     if (interaction.replied || interaction.deferred) {
@@ -115,21 +133,6 @@ client.on("interactionCreate", async interaction => {
   }
 });
 
-client.on("messageCreate", async message => {
-  if (message.author.bot) return;
-
-  const channelId = message.channelId;
-  const session = activeSessions.get(channelId);
-
-  if (session && session.isRunning && !session.roundFinished) {
-    try {
-      await session.handleChatGuess(message);
-    } catch (error) {
-      console.error("Tahmin işlenemedi:", error);
-      await session.endGame("Oyun hatası nedeniyle oturum kapatıldı.").catch(console.error);
-    }
-  }
-});
 
 function main() {
   if (!CONFIG.BOT_TOKEN || CONFIG.BOT_TOKEN === "BURAYA_BOT_TOKENI_GIRIN") {

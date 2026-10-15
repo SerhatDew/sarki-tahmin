@@ -13,9 +13,13 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ComponentType,
+  ModalBuilder,
+  LabelBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  MessageFlags,
   type ButtonInteraction,
-  type InteractionCollector
+  type ModalSubmitInteraction
 } from "discord.js";
 import { CONFIG } from "./config";
 import { dataManager, type GameItem } from "./dataManager";
@@ -23,6 +27,13 @@ import { imageProcessor } from "./imageProcessor";
 import { db } from "./database";
 import type { SongAudio } from "./voicePlayback";
 import { resolveSongPreview, type SongPreview } from "./songPreview";
+import { randomUUID } from "node:crypto";
+
+interface PanelContent {
+  embeds: EmbedBuilder[];
+  files?: AttachmentBuilder[];
+  components?: ActionRowBuilder<ButtonBuilder>[];
+}
 
 
 function delay(ms: number): Promise<void> {
@@ -61,8 +72,10 @@ export class GameSession {
   }> = [];
 
   private gameMessage: Message | null = null;
+  private panelQueue: Promise<void> = Promise.resolve();
+  private readonly sessionId = randomUUID();
+  private roundOptions: GameItem[] = [];
   private roundTimer: NodeJS.Timeout | null = null;
-  private buttonCollector: InteractionCollector<ButtonInteraction> | null = null;
   private wrongGuessCount: number = 0;
   private currentPreview: SongPreview | null = null;
   private songLookup: AbortController | null = null;
@@ -71,7 +84,7 @@ export class GameSession {
     public channel: TextChannel | VoiceChannel,
     public author: User,
     public category: string = "minecraft",
-    public gameMode: string = "chat",
+    public gameMode: string = "form",
     public totalRounds: number = CONFIG.DEFAULT_ROUNDS,
     public audio: SongAudio | null = null
   ) {
@@ -80,41 +93,46 @@ export class GameSession {
 
   public getCategoryTitle(cat?: string): string {
     const c = cat || this.currentCategory;
-    if (c === "flags") return "🎌 Ülke Bayrakları";
-    if (c === "minecraft") return "⛏️ Minecraft Eşyaları";
-    if (c === "songs") return "🎵 Şarkı ve Müzik";
-    return "🎲 Karışık (Şarkı, Bayrak & Minecraft)";
+    if (c === "flags") return "Ülke Bayrakları";
+    if (c === "minecraft") return "Minecraft Eşyaları";
+    if (c === "songs") return "Şarkı ve Müzik";
+    return "Karışık (Şarkı, Bayrak ve Minecraft)";
   }
 
   public async start(): Promise<void> {
     this.isRunning = true;
     const startEmbed = new EmbedBuilder()
-      .setTitle("🎮 Şarkı / Görsel Tahmin Oyunu Başlıyor!")
+      .setTitle(this.audio ? "Sesli şarkı tahmini başlıyor" : "Tahmin oyunu başlıyor")
       .setDescription(
         `**Kategori:** ${this.getCategoryTitle(this.category)}\n` +
-        `**Oyun Modu:** ${this.gameMode === "chat" ? "💬 Sohbet Modu (Mesajla Hızlı Tahmin)" : "🔘 Buton Modu (4 Şıklı Çoktan Seçmeli)"}\n` +
-        `**Toplam Tur:** 🎯 ${this.totalRounds} Tur\n\n` +
-        `**Mekanik:**\n` +
-        `• Görsel en yüksek bulanıklıkta (Seviye 5) gelir.\n` +
-        `• Süre geçtikçe veya yanlış tahmin edildikçe kademeli olarak netleşir!\n` +
-        `• **Seviye 5'te bilene 50 Puan**, **Seviye 1'de bilene 10 Puan**!\n\n` +
-        `⚡ *1. Tur hazırlanıyor, başarılar!*`
+        `**Toplam tur:** ${this.totalRounds} · **Tur süresi:** ${CONFIG.ROUND_DURATION} saniye\n\n` +
+        (this.audio ? "Şarkı kesitleri bu ses kanalında çalacak.\n" : "") +
+        (this.gameMode === "buttons"
+          ? "Paneldeki dört seçenekten doğru cevabı seçin.\n"
+          : "**Tahmin Et** butonuna basıp açılan forma cevabınızı yazın. Cevabınız yalnızca size görünür.\n") +
+        "Erken bilen daha çok puan kazanır. İlk tur hazırlanıyor."
       )
-      .setColor(CONFIG.COLORS.PRIMARY)
-      .setFooter({ text: "Hazırlayan: Şarkı Tahmin Sistemi • /yardım" });
-    if (this.audio) {
-      startEmbed
-        .setTitle("Sesli şarkı tahmini başlıyor")
-        .setDescription(
-          `Şarkı kesitleri bu ses kanalında çalacak. Cevapları kanalın sohbetine yazın.\n` +
-          `Toplam ${this.totalRounds} tur; her tur ${CONFIG.ROUND_DURATION} saniye.\n` +
-          "Şarkı adını erken bilen daha çok puan kazanır. Yalnızca sanatçı adı yeterli değildir."
-        );
-    }
-
-    await this.channel.send({ embeds: [startEmbed] });
+      .setColor(CONFIG.COLORS.PRIMARY);
+    await this.updatePanel({ embeds: [startEmbed] });
     await delay(3000);
     await this.nextRound();
+  }
+
+  private updatePanel(content: PanelContent): Promise<void> {
+    const payload = { files: [], components: [], ...content };
+    const update = this.panelQueue.then(async () => {
+      if (this.gameMessage) {
+        await this.gameMessage.edit({ ...payload, attachments: [] });
+      } else {
+        this.gameMessage = await this.channel.send(payload);
+      }
+    });
+    this.panelQueue = update.catch(() => {});
+    return update;
+  }
+
+  private componentId(action: string): string {
+    return `game:${this.sessionId}:${this.currentRound}:${action}`;
   }
 
   public async nextRound(): Promise<void> {
@@ -157,6 +175,9 @@ export class GameSession {
     this.excludedIds.add(this.currentItem.id);
     this.currentLevel = 5;
     this.wrongGuessCount = 0;
+    this.roundOptions = this.gameMode === "buttons"
+      ? dataManager.getMultipleChoiceOptions(this.currentCategory, this.currentItem, 4)
+      : [];
 
     const files: AttachmentBuilder[] = [];
     let filename: string | undefined;
@@ -168,16 +189,12 @@ export class GameSession {
       filename = `round_${this.currentRound}.png`;
       files.push(new AttachmentBuilder(imgBuffer, { name: filename }));
     }
-    const message = await this.channel.send({
+    await this.updatePanel({
       files,
       embeds: [this.createRoundEmbed(filename)],
       components: this.createRoundComponents()
     });
-    if (!this.isRunning || this.currentRound !== round) {
-      await message.edit({ components: [] });
-      return;
-    }
-    this.gameMessage = message;
+    if (!this.isRunning || this.currentRound !== round) return;
     if (this.audio && this.currentPreview) {
       try {
         await this.audio.play(this.currentPreview.previewUrl);
@@ -191,7 +208,6 @@ export class GameSession {
     }
     this.roundFinished = false;
     this.startTimerLoop();
-    this.setupButtonCollector();
   }
 
   private async selectVoiceSong(signal: AbortSignal): Promise<SongPreview> {
@@ -209,42 +225,30 @@ export class GameSession {
 
   private getSongHint(level: number, item: GameItem): string {
     if (level === 5) {
-      return `🎧 **Müzik Türü:** \`${item.genre || "Bilinmiyor"}\``;
+      return `**Müzik Türü:** \`${item.genre || "Bilinmiyor"}\``;
     } else if (level === 4) {
-      return `📅 **Çıkış Yılı:** \`${item.year || "Bilinmiyor"}\`  •  🎧 **Tür:** \`${item.genre || "Bilinmiyor"}\``;
+      return `**Çıkış Yılı:** \`${item.year || "Bilinmiyor"}\` · **Tür:** \`${item.genre || "Bilinmiyor"}\``;
     } else if (level === 3) {
-      return `🎤 **Sanatçı İpucu:** \`${maskArtist(item.artist || "")}\`  •  📅 **Yıl:** \`${item.year || ""}\``;
+      return `**Sanatçı İpucu:** \`${maskArtist(item.artist || "")}\` · **Yıl:** \`${item.year || ""}\``;
     } else if (level === 2) {
-      return `📜 **Şarkı Sözü İpucu:** *" ${item.lyrics || ""} "*`;
+      return `**Şarkı Sözü İpucu:** *"${item.lyrics || ""}"*`;
     } else {
-      return `🎤 **Sanatçı:** **${item.artist || ""}**  *(Şarkı adını tahmin edin!)*`;
+      return `**Sanatçı:** **${item.artist || ""}** · Şarkı adını tahmin edin.`;
     }
   }
 
   private createRoundEmbed(attachmentName?: string): EmbedBuilder {
     const points = CONFIG.POINTS_MAP[this.currentLevel] ?? 10;
-    const progPct = Math.floor(((this.currentRound - 1) / Math.max(1, this.totalRounds)) * 100);
-    const filledCnt = Math.floor(progPct / 10);
-    const progBar = "🟩".repeat(filledCnt) + "⬛".repeat(10 - filledCnt);
-
-    const blurMap: Record<number, string> = {
-      5: "🟥🟥🟥🟥🟥 (En Bulanık)",
-      4: "🟧🟧🟧🟧⬛ (Bulanık)",
-      3: "🟨🟨🟨⬛⬛ (Orta)",
-      2: "🟦🟦⬛⬛⬛ (Netleşti)",
-      1: "🟩⬛⬛⬛⬛ (Çok Net)"
-    };
-    const levelStr = blurMap[this.currentLevel] || "⬛⬛⬛⬛⬛";
+    const progress = Math.min(this.totalRounds, this.currentRound);
 
     const embed = new EmbedBuilder()
-      .setTitle(`🎯 Tur ${this.currentRound} / ${this.totalRounds} — ${this.getCategoryTitle()}`)
+      .setTitle(`Tur ${progress} / ${this.totalRounds} — ${this.getCategoryTitle()}`)
       .setDescription(
-        `**Oyun İlerlemesi:** \`[${progBar}]\` (%${progPct})\n` +
-        (this.audio ? `**İpucu Seviyesi:** ${this.currentLevel}\n` : `**Bulanıklık Seviyesi:** ${levelStr}\n`) +
-        `**Bu Turun Değeri:** ⭐ **${points} Puan**\n\n` +
-        (this.gameMode !== "buttons"
-          ? "💬 👉 **Tahmininizi sohbete doğrudan yazın!**"
-          : "🔘 👉 **Aşağıdaki butonlardan doğru şıkkı seçin!**")
+        `**${this.audio ? "İpucu" : "Bulanıklık"} seviyesi:** ${this.currentLevel} / 5\n` +
+        `**Bu turun değeri:** ${points} puan\n\n` +
+        (this.gameMode === "buttons"
+          ? "Aşağıdaki seçeneklerden doğru cevabı seçin."
+          : "**Tahmin Et** butonuna basıp cevabınızı özel formdan gönderin.")
       )
       .setImage(attachmentName ? `attachment://${attachmentName}` : null)
       .setColor(this.currentLevel > 2 ? CONFIG.COLORS.PRIMARY : CONFIG.COLORS.WARNING)
@@ -255,12 +259,12 @@ export class GameSession {
         .sort((a, b) => b.score - a.score)
         .slice(0, 3);
       const leaderStr = topLeaders.map(l => `**${l.username}**: ${l.score}p`).join("  •  ");
-      embed.addFields({ name: "🏆 Anlık Skor Tablosu", value: leaderStr, inline: false });
+      embed.addFields({ name: "Anlık Skorlar", value: leaderStr, inline: false });
     }
 
     if (this.currentCategory === "songs" && this.currentItem) {
       embed.addFields({
-        name: "💡 Şarkı İpucu",
+        name: "Şarkı İpucu",
         value: this.getSongHint(this.currentLevel, this.currentItem),
         inline: false
       });
@@ -274,19 +278,18 @@ export class GameSession {
 
     // Çoktan seçmeli mod şık butonları
     if (this.gameMode === "buttons" && this.currentItem) {
-      const options = dataManager.getMultipleChoiceOptions(this.currentCategory, this.currentItem, 4);
       const labels = ["A", "B", "C", "D"];
 
       const row1 = new ActionRowBuilder<ButtonBuilder>();
       const row2 = new ActionRowBuilder<ButtonBuilder>();
 
-      options.forEach((opt, idx) => {
+      this.roundOptions.forEach((opt, idx) => {
         const labelText = opt.artist
           ? `${labels[idx]}) ${opt.name} - ${opt.artist}`
           : `${labels[idx]}) ${opt.name}`;
         const trimmedLabel = labelText.length > 80 ? labelText.slice(0, 77) + "..." : labelText;
         const btn = new ButtonBuilder()
-          .setCustomId(`choice_${opt.id}`)
+          .setCustomId(this.componentId(`choice_${idx}`))
           .setLabel(trimmedLabel)
           .setStyle(ButtonStyle.Primary);
         if (idx < 2) row1.addComponents(btn);
@@ -295,20 +298,28 @@ export class GameSession {
 
       rows.push(row1, row2);
     }
+    else {
+      rows.push(new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(this.componentId("guess"))
+          .setLabel("Tahmin Et")
+          .setStyle(ButtonStyle.Primary)
+      ));
+    }
 
     // Kontrol butonları
     const controlRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId("action_clarify")
+        .setCustomId(this.componentId("hint"))
         .setLabel(this.audio ? "İpucu (-10 Puan)" : "Netleştir (-10 Puan)")
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId("action_skip")
-        .setLabel("⏩ Turu Atla")
+        .setCustomId(this.componentId("skip"))
+        .setLabel("Turu Atla")
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId("action_stop")
-        .setLabel("⏹️ Bitir")
+        .setCustomId(this.componentId("stop"))
+        .setLabel("Bitir")
         .setStyle(ButtonStyle.Danger)
     );
 
@@ -319,8 +330,6 @@ export class GameSession {
   private stopRound(): void {
     if (this.roundTimer) clearTimeout(this.roundTimer);
     this.roundTimer = null;
-    this.buttonCollector?.stop("round-ended");
-    this.buttonCollector = null;
     this.songLookup?.abort();
     this.songLookup = null;
     this.audio?.stop();
@@ -353,13 +362,12 @@ export class GameSession {
 
   private async updateImageAndEmbed(): Promise<void> {
     if (!this.gameMessage || this.roundFinished || !this.isRunning) return;
-    const message = this.gameMessage;
     const round = this.currentRound;
     const level = this.currentLevel;
 
     try {
       if (this.audio) {
-        await message.edit({
+        await this.updatePanel({
           embeds: [this.createRoundEmbed()],
           components: this.createRoundComponents()
         });
@@ -375,7 +383,7 @@ export class GameSession {
       const attachment = new AttachmentBuilder(imgBuffer, { name: filename });
       const embed = this.createRoundEmbed(filename);
 
-      await message.edit({
+      await this.updatePanel({
         files: [attachment],
         embeds: [embed],
         components: this.createRoundComponents()
@@ -385,99 +393,80 @@ export class GameSession {
     }
   }
 
-  private setupButtonCollector(): void {
-    if (!this.gameMessage) return;
-
-    const collector = this.gameMessage.createMessageComponentCollector({
-      componentType: ComponentType.Button,
-      time: (CONFIG.ROUND_DURATION + 5) * 1000
-    });
-    this.buttonCollector = collector;
-    const round = this.currentRound;
-
-    collector.on("collect", async interaction => {
-      if (!this.isRunning || this.roundFinished || this.currentRound !== round) {
-        await interaction.reply({ content: "Bu tur zaten tamamlandı!", ephemeral: true });
+  public async handleButtonInteraction(interaction: ButtonInteraction): Promise<void> {
+    const prefix = this.componentId("");
+    if (!this.isRunning || this.roundFinished || !this.currentItem ||
+        interaction.channelId !== this.channel.id || interaction.message.id !== this.gameMessage?.id ||
+        !interaction.customId.startsWith(prefix)) {
+      await interaction.reply({ content: "Bu tur artık tahmin kabul etmiyor.", flags: MessageFlags.Ephemeral });
+      return;
+    }
+    const action = interaction.customId.slice(prefix.length);
+    if (action === "guess" && this.gameMode !== "buttons") {
+      const input = new TextInputBuilder()
+        .setCustomId("answer")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(150);
+      await interaction.showModal(new ModalBuilder()
+        .setCustomId(this.componentId("submit"))
+        .setTitle("Tahminini yaz")
+        .addLabelComponents(new LabelBuilder()
+          .setLabel(this.currentCategory === "songs" ? "Şarkının adı" : "Cevabınız")
+          .setTextInputComponent(input)));
+    } else if (action === "hint") {
+      if (this.currentLevel <= 1) {
+        await interaction.reply({ content: "Son ipucu zaten açık.", flags: MessageFlags.Ephemeral });
         return;
       }
-
-      const id = interaction.customId;
-
-      if (id === "action_clarify") {
-        if (this.currentLevel > 1) {
-          this.currentLevel--;
-          await interaction.reply({
-            content: `**${interaction.user.displayName}** bir ipucu açtı. Yeni seviye: ${this.currentLevel}.`,
-            ephemeral: false
-          });
-          await this.updateImageAndEmbed();
-        } else {
-          await interaction.reply({ content: "Görsel zaten en açık seviyede!", ephemeral: true });
-        }
-        return;
-      }
-
-      if (id === "action_skip") {
-        await Promise.all([
-          interaction.reply({ content: `**${interaction.user.displayName}** turu atladı.` }),
-          this.onRoundTimeout()
-        ]);
-        return;
-      }
-
-      if (id === "action_stop") {
-        await Promise.all([
-          interaction.reply({ content: `**${interaction.user.displayName}** oyunu sonlandırdı.` }),
-          this.endGame("Oyun durduruldu.")
-        ]);
-        return;
-      }
-
-      // Şık Butonu Kontrolü
-      if (id.startsWith("choice_")) {
-        const choiceId = id.replace("choice_", "");
-        if (choiceId === this.currentItem?.id) {
-          await Promise.all([
-            interaction.reply({ content: "Doğru seçim!", ephemeral: true }),
-            this.onCorrectGuess(interaction.user)
-          ]);
-        } else {
-          const guildId = interaction.guildId || "0";
-          db.recordGuess(
-            interaction.user.id,
-            guildId,
-            interaction.user.displayName,
-            this.currentCategory,
-            this.currentLevel,
-            0,
-            false
-          );
-          await interaction.reply({ content: "❌ Yanlış cevap!", ephemeral: true });
-          if (this.currentLevel > 1) {
-            this.currentLevel--;
-            await this.updateImageAndEmbed();
-          }
-        }
-      }
-    });
+      this.currentLevel--;
+      await Promise.all([interaction.deferUpdate(), this.updateImageAndEmbed()]);
+    } else if (action === "skip") {
+      await Promise.all([interaction.deferUpdate(), this.onRoundTimeout()]);
+    } else if (action === "stop") {
+      await Promise.all([interaction.deferUpdate(), this.endGame("Oyun durduruldu.")]);
+    } else if (this.gameMode === "buttons" && /^choice_[0-3]$/.test(action)) {
+      const choice = this.roundOptions[Number(action.slice(-1))];
+      if (!choice) return;
+      await this.submitGuess(interaction, choice.id === this.currentItem.id);
+    } else {
+      await interaction.reply({ content: "Bu buton artık kullanılamıyor.", flags: MessageFlags.Ephemeral });
+    }
   }
 
-  public async handleChatGuess(message: Message): Promise<boolean> {
-    if (!this.isRunning || this.roundFinished || !this.currentItem) return false;
-
-    const isCorrect = dataManager.checkGuess(this.currentItem, message.content.trim());
-
-    if (isCorrect) {
-      await this.onCorrectGuess(message.author);
-      return true;
-    } else {
-      this.wrongGuessCount++;
-      if (this.wrongGuessCount % 3 === 0 && this.currentLevel > 1) {
-        this.currentLevel--;
-        await this.updateImageAndEmbed();
-      }
-      return false;
+  public async handleModalGuess(interaction: ModalSubmitInteraction): Promise<void> {
+    if (!this.isRunning || this.roundFinished || !this.currentItem || this.gameMode === "buttons" ||
+        interaction.channelId !== this.channel.id || interaction.customId !== this.componentId("submit")) {
+      await interaction.reply({ content: "Bu formun turu sona erdi. Güncel panelden tekrar tahmin edin.", flags: MessageFlags.Ephemeral });
+      return;
     }
+    const answer = interaction.fields.getTextInputValue("answer").trim();
+    if (!answer) {
+      await interaction.reply({ content: "Bir cevap yazın.", flags: MessageFlags.Ephemeral });
+      return;
+    }
+    await this.submitGuess(interaction, dataManager.checkGuess(this.currentItem, answer));
+  }
+
+  private async submitGuess(interaction: ButtonInteraction | ModalSubmitInteraction, correct: boolean): Promise<void> {
+    if (correct) {
+      const points = CONFIG.POINTS_MAP[this.currentLevel] ?? 10;
+      const result = this.onCorrectGuess(interaction.user);
+      await Promise.all([
+        interaction.reply({ content: `Doğru cevap! ${points} puan kazandınız.`, flags: MessageFlags.Ephemeral }),
+        result
+      ]);
+      return;
+    }
+    db.recordGuess(interaction.user.id, this.channel.guildId, interaction.user.displayName,
+      this.currentCategory, this.currentLevel, 0, false);
+    this.wrongGuessCount++;
+    const revealHint = this.currentLevel > 1 && (this.gameMode === "buttons" || this.wrongGuessCount % 3 === 0);
+    if (revealHint) this.currentLevel--;
+    await Promise.all([
+      interaction.reply({ content: "Yanlış cevap. Tekrar tahmin edebilirsiniz.", flags: MessageFlags.Ephemeral }),
+      revealHint ? this.updateImageAndEmbed() : Promise.resolve()
+    ]);
   }
 
   public async onCorrectGuess(user: User): Promise<void> {
@@ -512,15 +501,15 @@ export class GameSession {
     const origFile = new AttachmentBuilder(origBuffer, { name: "reveal.png" });
 
     const embed = new EmbedBuilder()
-      .setTitle(`🎉 TEBRİKLER! ${user.displayName} DOĞRU BİLDİ!`)
+      .setTitle(`${user.displayName} doğru bildi`)
       .setDescription(
         (this.currentItem!.artist
-          ? `🌟 **Doğru Cevap:** **${this.currentItem!.name}** — *${this.currentItem!.artist}* (${this.currentItem!.year})\n` +
-            `💿 **Albüm:** *${this.currentItem!.album}*  •  🎧 **Tür:** \`${this.currentItem!.genre}\`\n`
-          : `🌟 **Doğru Cevap:** **${this.currentItem!.name}**\n`) +
-        `**Kazanılan:** +${points} Puan *(Seviye ${this.currentLevel})*\n` +
-        `👤 **${user.displayName} Toplam Puanı:** **${currentScore.score} Puan**\n\n` +
-        `⏱️ *Sıradaki tur 4 saniye içinde başlıyor...*`
+          ? `**Doğru cevap:** **${this.currentItem!.name}** — *${this.currentItem!.artist}* (${this.currentItem!.year})\n` +
+            `**Albüm:** *${this.currentItem!.album}* · **Tür:** \`${this.currentItem!.genre}\`\n`
+          : `**Doğru cevap:** **${this.currentItem!.name}**\n`) +
+        `**Kazanılan:** +${points} puan · Seviye ${this.currentLevel}\n` +
+        `**${user.displayName} toplam puanı:** ${currentScore.score}\n\n` +
+        "Sıradaki tur 4 saniye içinde başlıyor."
       )
       .setThumbnail(user.displayAvatarURL())
       .setImage("attachment://reveal.png")
@@ -530,13 +519,7 @@ export class GameSession {
       embed.addFields({ name: "Kaynak", value: `[Apple Music / iTunes](${this.currentPreview.sourceUrl})` });
     }
 
-    if (this.gameMessage) {
-      try {
-        await this.gameMessage.edit({ components: [] });
-      } catch {}
-    }
-
-    await this.channel.send({ files: [origFile], embeds: [embed] });
+    await this.updatePanel({ files: [origFile], embeds: [embed] });
     await delay(4000);
     await this.nextRound();
   }
@@ -564,14 +547,13 @@ export class GameSession {
     const origFile = new AttachmentBuilder(origBuffer, { name: "timeout.png" });
 
     const embed = new EmbedBuilder()
-      .setTitle("⌛ SÜRE DOLDU! KİMSE BİLEMEDİ")
+      .setTitle("Süre doldu, kimse bilemedi")
       .setDescription(
         (this.currentItem!.artist
-          ? `🔍 **Doğru Cevap:** **${this.currentItem!.name}** — *${this.currentItem!.artist}* (${this.currentItem!.year})\n` +
-            `💿 **Albüm:** *${this.currentItem!.album}*  •  🎧 **Tür:** \`${this.currentItem!.genre}\`\n`
-          : `🔍 **Doğru Cevap:** **${this.currentItem!.name}**\n`) +
-        `Bu turda kimse puan kazanamadı.\n\n` +
-        `⏱️ *Sıradaki tur 4 saniye içinde başlıyor...*`
+          ? `**Doğru cevap:** **${this.currentItem!.name}** — *${this.currentItem!.artist}* (${this.currentItem!.year})\n` +
+            `**Albüm:** *${this.currentItem!.album}* · **Tür:** \`${this.currentItem!.genre}\`\n`
+          : `**Doğru cevap:** **${this.currentItem!.name}**\n`) +
+        "Bu turda kimse puan kazanamadı.\n\nSıradaki tur 4 saniye içinde başlıyor."
       )
       .setImage("attachment://timeout.png")
       .setColor(CONFIG.COLORS.DANGER)
@@ -580,13 +562,7 @@ export class GameSession {
       embed.addFields({ name: "Kaynak", value: `[Apple Music / iTunes](${this.currentPreview.sourceUrl})` });
     }
 
-    if (this.gameMessage) {
-      try {
-        await this.gameMessage.edit({ components: [] });
-      } catch {}
-    }
-
-    await this.channel.send({ files: [origFile], embeds: [embed] });
+    await this.updatePanel({ files: [origFile], embeds: [embed] });
     await delay(4000);
     await this.nextRound();
   }
@@ -601,18 +577,11 @@ export class GameSession {
 
     const guildId = this.channel.guildId || "0";
     db.recordGameFinish(guildId, this.channel.id, this.category, this.scores, this.currentRound);
-    if (this.gameMessage) {
-      try {
-        await this.gameMessage.edit({ components: [] });
-      } catch (error) {
-        console.warn("Oyun butonları kapatılamadı:", error);
-      }
-    }
 
     const sortedScores = Array.from(this.scores.values()).sort((a, b) => b.score - a.score);
 
     const embed = new EmbedBuilder()
-      .setTitle("🏆 OYUN SONU — LİDERLİK TABLOSU")
+      .setTitle("Oyun Sonu — Skor Tablosu")
       .setDescription(
         `${reason}\n\n` +
         `**Kategori:** ${this.getCategoryTitle(this.category)}\n` +
@@ -621,11 +590,9 @@ export class GameSession {
       .setColor(CONFIG.COLORS.GOLD);
 
     if (sortedScores.length > 0) {
-      const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
       let text = "";
       sortedScores.slice(0, 5).forEach((p, idx) => {
-        const medal = medals[idx] || "▫️";
-        text += `${medal} **${p.username}**: **${p.score} Puan**\n`;
+        text += `${idx + 1}. **${p.username}**: **${p.score} puan**\n`;
       });
       embed.setDescription(embed.data.description + text);
     } else {
@@ -635,10 +602,9 @@ export class GameSession {
     if (this.history.length > 0) {
       let historyText = "";
       this.history.slice(-10).forEach(h => {
-        const icon = h.winner !== "Kimse bilemedi" ? "✅" : "❌";
-        historyText += `${icon} Tur ${h.round}: **${h.item}** → ${h.winner} (${h.points}p)\n`;
+        historyText += `Tur ${h.round}: **${h.item}** → ${h.winner} (${h.points}p)\n`;
       });
-      embed.addFields({ name: "📜 Tur Dökümü", value: historyText, inline: false });
+      embed.addFields({ name: "Tur Dökümü", value: historyText, inline: false });
     }
 
     const podiumBuffer = imageProcessor.generateScoreboardImage(
@@ -651,6 +617,6 @@ export class GameSession {
     embed.setImage("attachment://podium.png");
     embed.setFooter({ text: "Yeni oyun başlatmak için: /oyun" });
 
-    await this.channel.send({ files: [podiumFile], embeds: [embed] });
+    await this.updatePanel({ files: [podiumFile], embeds: [embed] });
   }
 }
