@@ -1,0 +1,534 @@
+[
+  {
+    "id": "diamond_sword",
+    "name": "Elmas Kılıç",
+    "aliases": [
+      "elmas kilic",
+      "diamond sword"
+    ]
+  },
+  {
+    "id": "netherite_sword",
+    "name": "Netherit Kılıç",
+    "aliases": [
+      "netherit kilic",
+      "netherite sword"
+    ]
+  },
+  {
+    "id": "iron_sword",
+    "name": "Demir Kılıç",
+    "aliases": [
+      "demir kilic",
+      "iron sword"
+    ]
+  },
+  {
+    "id": "golden_sword",
+    "name": "Altın Kılıç",
+    "aliases": [
+      "altin kilic",
+      "golden sword",
+      "gold sword"
+    ]
+  },
+  {
+    "id": "diamond_pickaxe",
+    "name": "Elmas Kazma",
+    "aliases": [
+      "elmas kazma",
+      "diamond pickaxe"
+    ]
+  },
+  {
+    "id": "netherite_pickaxe",
+    "name": "Netherit Kazma",
+    "aliases": [
+      "netherit kazma",
+      "netherite pickaxe"
+    ]
+  },
+  {
+    "id": "iron_pickaxe",
+    "name": "Demir Kazma",
+    "aliases": [
+      "demir kazma",
+      "iron pickaxe"
+    ]
+  },
+  {
+    "id": "diamond_axe",
+    "name": "Elmas Balta",
+    "aliases": [
+      "elmas balta",
+      "diamond axe"
+    ]
+  },
+  {
+    "id": "netherite_axe",
+    "name": "Netherit Balta",
+    "aliases": [
+      "netherit balta",
+      "netherite axe"
+    ]
+  },
+  {
+    "id": "golden_apple",
+    "name": "Altın Elma",
+    "aliases": [
+      "altin elma",
+      "golden apple",
+      "gap",
+      "gold apple"
+    ]
+  },
+  {
+    "id": "apple",
+    "name": "Elma",
+    "aliases": [
+      "elma",
+      "apple",
+      "kirmizi elma"
+    ]
+  },
+  {
+    "id": "ender_pearl",
+    "name": "Ender İncisi",
+    "aliases": [
+      "ender incisi",
+      "ender pearl",
+      "inci",
+      "pearl"
+    ]
+  },
+  {
+    "id": "ender_eye",
+    "name": "Ender Gözü",
+    "aliases": [
+      "ender gozu",
+      "ender eye",
+      "eye of ender"
+    ]
+  },
+  {
+    "id": "elytra",
+    "name": "Elitra",
+    "aliases": [
+      "elitra",
+      "elytra",
+      "kanat"
+    ]
+  },
+  {
+    "id": "totem_of_undying",
+    "name": "Ölümsüzlük Totemi",
+    "aliases": [
+      "olumsuzluk totemi",
+      "totem of undying",
+      "totem"
+    ]
+  },
+  {
+    "id": "bow",
+    "name": "Yay",
+    "aliases": [
+      "yay",
+      "bow",
+      "ok ve yay"
+    ]
+  },
+  {
+    "id": "crossbow_standby",
+    "name": "Arbalet",
+    "aliases": [
+      "arbalet",
+      "crossbow",
+      "tatar yayi"
+    ]
+  },
+  {
+    "id": "arrow",
+    "name": "Ok",
+    "aliases": [
+      "ok",
+      "arrow"
+    ]
+  },
+  {
+    "id": "spectral_arrow",
+    "name": "Spektral Ok",
+    "aliases": [
+      "spektral ok",
+      "spectral arrow",
+      "isiltili ok",
+      "parlayan ok"
+    ]
+  },
+  {
+    "id": "diamond",
+    "name": "Elmas",
+    "aliases": [
+      "elmas",
+      "diamond"
+    ]
+  },
+  {
+    "id": "emerald",
+    "name": "Zümrüt",
+    "aliases": [
+      "zumrut",
+      "emerald"
+    ]
+  },
+  {
+    "id": "gold_ingot",
+    "name": "Altın Külçesi",
+    "aliases": [
+      "altin kulcesi",
+      "gold ingot",
+      "altin",
+      "gold"
+    ]
+  },
+  {
+    "id": "iron_ingot",
+    "name": "Demir Külçesi",
+    "aliases": [
+      "demir kulcesi",
+      "iron ingot",
+      "demir",
+      "iron"
+    ]
+  },
+  {
+    "id": "netherite_ingot",
+    "name": "Netherit Külçesi",
+    "aliases": [
+      "netherit kulcesi",
+      "netherite ingot",
+      "netherit"
+    ]
+  },
+  {
+    "id": "copper_ingot",
+    "name": "Bakır Külçesi",
+    "aliases": [
+      "bakir kulcesi",
+      "copper ingot",
+      "bakir"
+    ]
+  },
+  {
+    "id": "trident",
+    "name": "Üçlü Mızrak",
+    "aliases": [
+      "uclu mizrak",
+      "trident",
+      "mizrak"
+    ]
+  },
+  {
+    "id": "book",
+    "name": "Kitap",
+    "aliases": [
+      "kitap",
+      "book"
+    ]
+  },
+  {
+    "id": "enchanted_book",
+    "name": "Büyülü Kitap",
+    "aliases": [
+      "buyulu kitap",
+      "enchanted book"
+    ]
+  },
+  {
+    "id": "bucket",
+    "name": "Kova",
+    "aliases": [
+      "kova",
+      "bucket",
+      "bos kova"
+    ]
+  },
+  {
+    "id": "water_bucket",
+    "name": "Su Kovası",
+    "aliases": [
+      "su kovasi",
+      "water bucket"
+    ]
+  },
+  {
+    "id": "lava_bucket",
+    "name": "Lav Kovası",
+    "aliases": [
+      "lav kovasi",
+      "lava bucket"
+    ]
+  },
+  {
+    "id": "milk_bucket",
+    "name": "Süt Kovası",
+    "aliases": [
+      "sut kovasi",
+      "milk bucket",
+      "sut"
+    ]
+  },
+  {
+    "id": "fishing_rod",
+    "name": "Olta",
+    "aliases": [
+      "olta",
+      "fishing rod"
+    ]
+  },
+  {
+    "id": "shears",
+    "name": "Makas",
+    "aliases": [
+      "makas",
+      "shears"
+    ]
+  },
+  {
+    "id": "spyglass",
+    "name": "Dürbün",
+    "aliases": [
+      "durbun",
+      "spyglass"
+    ]
+  },
+  {
+    "id": "flint_and_steel",
+    "name": "Çakmaktaşı ve Çelik",
+    "aliases": [
+      "cakmaktasi",
+      "flint and steel",
+      "cakmak"
+    ]
+  },
+  {
+    "id": "lead",
+    "name": "Kayış",
+    "aliases": [
+      "kayis",
+      "lead",
+      "ip"
+    ]
+  },
+  {
+    "id": "saddle",
+    "name": "Eyer",
+    "aliases": [
+      "eyer",
+      "saddle"
+    ]
+  },
+  {
+    "id": "name_tag",
+    "name": "İsim Etiketi",
+    "aliases": [
+      "isim etiketi",
+      "name tag",
+      "etiket"
+    ]
+  },
+  {
+    "id": "campfire",
+    "name": "Kamp Ateşi",
+    "aliases": [
+      "kamp atesi",
+      "campfire"
+    ]
+  },
+  {
+    "id": "cookie",
+    "name": "Kurabiye",
+    "aliases": [
+      "kurabiye",
+      "cookie"
+    ]
+  },
+  {
+    "id": "golden_carrot",
+    "name": "Altın Havuç",
+    "aliases": [
+      "altin havuc",
+      "golden carrot"
+    ]
+  },
+  {
+    "id": "bread",
+    "name": "Ekmek",
+    "aliases": [
+      "ekmek",
+      "bread"
+    ]
+  },
+  {
+    "id": "cooked_beef",
+    "name": "Pişmiş Biftek",
+    "aliases": [
+      "pismis biftek",
+      "cooked beef",
+      "biftek",
+      "et",
+      "steak"
+    ]
+  },
+  {
+    "id": "blaze_rod",
+    "name": "Blaze Çubuğu",
+    "aliases": [
+      "blaze cubugu",
+      "blaze rod",
+      "blaze"
+    ]
+  },
+  {
+    "id": "ghast_tear",
+    "name": "Ghast Gözyaşı",
+    "aliases": [
+      "ghast gozyasi",
+      "ghast tear"
+    ]
+  },
+  {
+    "id": "magma_cream",
+    "name": "Magma Kreması",
+    "aliases": [
+      "magma kremasi",
+      "magma cream"
+    ]
+  },
+  {
+    "id": "slime_ball",
+    "name": "Balçık Topu",
+    "aliases": [
+      "balcik topu",
+      "slime ball",
+      "slime",
+      "balcik"
+    ]
+  },
+  {
+    "id": "nether_star",
+    "name": "Nether Yıldızı",
+    "aliases": [
+      "nether yildizi",
+      "nether star",
+      "wither yildizi"
+    ]
+  },
+  {
+    "id": "heart_of_the_sea",
+    "name": "Denizin Kalbi",
+    "aliases": [
+      "denizin kalbi",
+      "heart of the sea"
+    ]
+  },
+  {
+    "id": "nautilus_shell",
+    "name": "Deniz Kabuğu",
+    "aliases": [
+      "deniz kabugu",
+      "nautilus shell"
+    ]
+  },
+  {
+    "id": "bell",
+    "name": "Çan",
+    "aliases": [
+      "can",
+      "bell"
+    ]
+  },
+  {
+    "id": "diamond_helmet",
+    "name": "Elmas Kask",
+    "aliases": [
+      "elmas kask",
+      "diamond helmet"
+    ]
+  },
+  {
+    "id": "diamond_chestplate",
+    "name": "Elmas Zırh",
+    "aliases": [
+      "elmas zirh",
+      "diamond chestplate",
+      "gogusluk"
+    ]
+  },
+  {
+    "id": "diamond_leggings",
+    "name": "Elmas Pantolon",
+    "aliases": [
+      "elmas pantolon",
+      "diamond leggings"
+    ]
+  },
+  {
+    "id": "diamond_boots",
+    "name": "Elmas Bot",
+    "aliases": [
+      "elmas bot",
+      "diamond boots",
+      "cizme"
+    ]
+  },
+  {
+    "id": "netherite_helmet",
+    "name": "Netherit Kask",
+    "aliases": [
+      "netherit kask",
+      "netherite helmet"
+    ]
+  },
+  {
+    "id": "netherite_chestplate",
+    "name": "Netherit Zırh",
+    "aliases": [
+      "netherit zirh",
+      "netherite chestplate"
+    ]
+  },
+  {
+    "id": "netherite_leggings",
+    "name": "Netherit Pantolon",
+    "aliases": [
+      "netherit pantolon",
+      "netherite leggings"
+    ]
+  },
+  {
+    "id": "netherite_boots",
+    "name": "Netherit Bot",
+    "aliases": [
+      "netherit bot",
+      "netherite boots"
+    ]
+  },
+  {
+    "id": "amethyst_shard",
+    "name": "Ametist Parçası",
+    "aliases": [
+      "ametist parcasi",
+      "amethyst shard",
+      "ametist"
+    ]
+  },
+  {
+    "id": "firework_rocket",
+    "name": "Havai Fişek",
+    "aliases": [
+      "havai fisek",
+      "firework rocket",
+      "roket"
+    ]
+  }
+]

@@ -1,0 +1,482 @@
+[
+  {
+    "id": "baris_manco_donence",
+    "name": "Dönence",
+    "artist": "Barış Manço",
+    "album": "Sözüm Meclisten Dışarı",
+    "year": 1981,
+    "genre": "Anadolu Rock",
+    "lyrics": "Simsiyah gecenin koynundayım yapayalnız, uzaklarda bir yerlerde türküler söyleniyor...",
+    "aliases": ["donence", "baris manco donence", "barış manço dönence", "donence baris manco"]
+  },
+  {
+    "id": "baris_manco_gulpembe",
+    "name": "Gülpembe",
+    "artist": "Barış Manço",
+    "album": "Sözüm Meclisten Dışarı",
+    "year": 1981,
+    "genre": "Anadolu Rock",
+    "lyrics": "Sen gülünce güller açar Gülpembe, bülbüller seni anlatır dillerde...",
+    "aliases": ["gulpembe", "baris manco gulpembe", "gül pembe", "barış manço gülpembe"]
+  },
+  {
+    "id": "cem_karaca_resimdeki_gozyaslari",
+    "name": "Resimdeki Gözyaşları",
+    "artist": "Cem Karaca",
+    "album": "Resimdeki Gözyaşları",
+    "year": 1968,
+    "genre": "Anadolu Rock",
+    "lyrics": "Bir gün belki hayattan, geçmişteki günlerden bir teselli ararsın o şarkılarda...",
+    "aliases": ["resimdeki gozyaslari", "resimdeki gözyaşları", "cem karaca resimdeki gozyaslari"]
+  },
+  {
+    "id": "cem_karaca_tamirci_ciragi",
+    "name": "Tamirci Çırağı",
+    "artist": "Cem Karaca",
+    "album": "Yoksulluk Kader Olamaz",
+    "year": 1975,
+    "genre": "Anadolu Rock",
+    "lyrics": "Ustam geldi sırtıma vurdu, unut dedi romanları... İşçisin sen işçi kal giy dedi tulumları...",
+    "aliases": ["tamirci ciragi", "tamirci çırağı", "iscisin sen isci kal", "cem karaca tamirci ciragi"]
+  },
+  {
+    "id": "erkin_koray_fesupanallah",
+    "name": "Fesupanallah",
+    "artist": "Erkin Koray",
+    "album": "Elektronik Türküler",
+    "year": 1974,
+    "genre": "Anadolu Rock",
+    "lyrics": "Arkamda bıraktım dağ gibi dertler, fesupanallah der dururum...",
+    "aliases": ["fesupanallah", "erkin koray fesupanallah", "fe supanallah"]
+  },
+  {
+    "id": "duman_haberin_yok_oluyorum",
+    "name": "Haberin Yok Ölüyorum",
+    "artist": "Duman",
+    "album": "Belki Alışman Lazım",
+    "year": 2002,
+    "genre": "Türkçe Rock",
+    "lyrics": "Sen beni unuttun çoktan belki de, ben hâlâ yaşarım eski günlerde...",
+    "aliases": ["haberin yok oluyorum", "haberin yok ölüyorum", "haberin yok", "duman haberin yok oluyorum"]
+  },
+  {
+    "id": "duman_senden_daha_guzel",
+    "name": "Senden Daha Güzel",
+    "artist": "Duman",
+    "album": "Duman I",
+    "year": 2009,
+    "genre": "Türkçe Rock",
+    "lyrics": "Kimseyi görmedim ben senden daha güzel, kimseyi tanımadım ben senden daha özel...",
+    "aliases": ["senden daha guzel", "senden daha güzel", "duman senden daha guzel"]
+  },
+  {
+    "id": "manga_bir_kadin_cizeceksin",
+    "name": "Bir Kadın Çizeceksin",
+    "artist": "maNga",
+    "album": "maNga",
+    "year": 2004,
+    "genre": "Nu-Metal / Rock",
+    "lyrics": "Bir kadın çizeceksin, onun gibi bırakıp gitmeyecek, seni terk etmeyecek...",
+    "aliases": ["bir kadin cizeceksin", "bir kadın çizeceksin", "manga bir kadin cizeceksin"]
+  },
+  {
+    "id": "manga_dursun_zaman",
+    "name": "Dursun Zaman",
+    "artist": "maNga",
+    "album": "maNga",
+    "year": 2004,
+    "genre": "Türkçe Rock",
+    "lyrics": "Dursun zaman dursun diyorsun da oyun değil ki yaşamak, sen inansan da inanmasan da...",
+    "aliases": ["dursun zaman", "manga dursun zaman"]
+  },
+  {
+    "id": "mor_ve_otesi_cambaz",
+    "name": "Cambaz",
+    "artist": "Mor ve Ötesi",
+    "album": "Dünya Yalan Söylüyor",
+    "year": 2004,
+    "genre": "Alternatif Rock",
+    "lyrics": "Ne habersin ne türksün ne de zenci, var mı dünyada bir benzerin ey cambaz...",
+    "aliases": ["cambaz", "mor ve otesi cambaz", "mor ve ötesi cambaz"]
+  },
+  {
+    "id": "mor_ve_otesi_bir_derdim_var",
+    "name": "Bir Derdim Var",
+    "artist": "Mor ve Ötesi",
+    "album": "Dünya Yalan Söylüyor",
+    "year": 2004,
+    "genre": "Alternatif Rock",
+    "lyrics": "Bir derdim var artık tutamam içimde, gitsem nereye kadar kalsam neye yarar...",
+    "aliases": ["bir derdim var", "mor ve otesi bir derdim var", "mor ve ötesi bir derdim var"]
+  },
+  {
+    "id": "sebnem_ferah_sil_bastan",
+    "name": "Sil Baştan",
+    "artist": "Şebnem Ferah",
+    "album": "Kelimeler Yetse",
+    "year": 2003,
+    "genre": "Türkçe Rock",
+    "lyrics": "Sil baştan başlamak gerek bazen, hayatı sıfırlamak... Sil baştan sevmek gerek bazen...",
+    "aliases": ["sil bastan", "sil baştan", "sebnem ferah sil bastan", "şebnem ferah sil baştan"]
+  },
+  {
+    "id": "athena_kafama_gore",
+    "name": "Kafama Göre",
+    "artist": "Athena",
+    "album": "Altüst",
+    "year": 2014,
+    "genre": "Ska Punk / Rock",
+    "lyrics": "Takılmışım ben kafama göre, dolaşırım her gün öylece...",
+    "aliases": ["kafama gore", "kafama göre", "athena kafama gore"]
+  },
+  {
+    "id": "haluk_levent_yollarda_bulurum_seni",
+    "name": "Yollarda Bulurum Seni",
+    "artist": "Haluk Levent",
+    "album": "Arkadaş",
+    "year": 1996,
+    "genre": "Anadolu Rock",
+    "lyrics": "Yollarda bulurum seni, takvimlerden çalarım seni, dans ederim rüzgarlarla...",
+    "aliases": ["yollarda bulurum seni", "haluk levent yollarda bulurum seni"]
+  },
+  {
+    "id": "teoman_paramparca",
+    "name": "Paramparça",
+    "artist": "Teoman",
+    "album": "Onyedi",
+    "year": 2000,
+    "genre": "Türkçe Rock",
+    "lyrics": "Bugün benim doğum günüm, hem sarhoşum hem yastayım... Bir bar taburesi üstünde...",
+    "aliases": ["paramparca", "paramparça", "teoman paramparca"]
+  },
+  {
+    "id": "teoman_renkli_ruyalar_oteli",
+    "name": "Renkli Rüyalar Oteli",
+    "artist": "Teoman",
+    "album": "Renkli Rüyalar Oteli",
+    "year": 2006,
+    "genre": "Türkçe Rock",
+    "lyrics": "Bir elinde kadeh, öbüründe sigara... Renkli rüyalar otelinde tek başına...",
+    "aliases": ["renkli ruyalar oteli", "renkli rüyalar oteli", "teoman renkli ruyalar oteli"]
+  },
+  {
+    "id": "tarkan_simarik",
+    "name": "Şımarık",
+    "artist": "Tarkan",
+    "album": "Ölürüm Sana",
+    "year": 1997,
+    "genre": "Türkçe Pop",
+    "lyrics": "Yakalarsam mucuk mucuk... Oynama şıkıdım şıkıdım...",
+    "aliases": ["simarik", "şımarık", "tarkan simarik", "yakalarsam", "sikidim"]
+  },
+  {
+    "id": "tarkan_kuzu_kuzu",
+    "name": "Kuzu Kuzu",
+    "artist": "Tarkan",
+    "album": "Karma",
+    "year": 2001,
+    "genre": "Türkçe Pop",
+    "lyrics": "İşte kuzu kuzu geldim, dilediğince kır beni... Bir lokma sevgiye muhtaç...",
+    "aliases": ["kuzu kuzu", "tarkan kuzu kuzu"]
+  },
+  {
+    "id": "tarkan_dudu",
+    "name": "Dudu",
+    "artist": "Tarkan",
+    "album": "Dudu",
+    "year": 2003,
+    "genre": "Türkçe Pop",
+    "lyrics": "Ağlama değmez hayat bu gözyaşlarına, her şey boş baksana etrafına...",
+    "aliases": ["dudu", "tarkan dudu", "aglama degmez hayat"]
+  },
+  {
+    "id": "sezen_aksu_firuze",
+    "name": "Firuze",
+    "artist": "Sezen Aksu",
+    "album": "Firuze",
+    "year": 1982,
+    "genre": "Türkçe Pop",
+    "lyrics": "Bir dönüm noktasındasın hayatının, acılarının... Kıymetini bil Firuze...",
+    "aliases": ["firuze", "sezen aksu firuze"]
+  },
+  {
+    "id": "sezen_aksu_sen_aglama",
+    "name": "Sen Ağlama",
+    "artist": "Sezen Aksu",
+    "album": "Sen Ağlama",
+    "year": 1984,
+    "genre": "Türkçe Pop",
+    "lyrics": "Sen ağlama, bir damla gözyaşın yeter... Güneş doğar rüzgar diner...",
+    "aliases": ["sen aglama", "sen ağlama", "sezen aksu sen aglama"]
+  },
+  {
+    "id": "sertab_erener_everyway_that_i_can",
+    "name": "Everyway That I Can",
+    "artist": "Sertab Erener",
+    "album": "No Boundaries",
+    "year": 2003,
+    "genre": "Pop / Eurovision",
+    "lyrics": "I'll feel in love with you again, every way that I can, I'll try to make you love me again...",
+    "aliases": ["everyway that i can", "every way that i can", "sertab erener everyway that i can"]
+  },
+  {
+    "id": "levent_yuksel_med_cezir",
+    "name": "Med Cezir",
+    "artist": "Levent Yüksel",
+    "album": "Med Cezir",
+    "year": 1993,
+    "genre": "Türkçe Pop",
+    "lyrics": "Dökülür yapraklar birer birer, solar hatıralar geceler boyu...",
+    "aliases": ["med cezir", "medcezir", "levent yuksel med cezir"]
+  },
+  {
+    "id": "levent_yuksel_zalim",
+    "name": "Zalim",
+    "artist": "Levent Yüksel",
+    "album": "Med Cezir",
+    "year": 1993,
+    "genre": "Türkçe Pop",
+    "lyrics": "Zalim, oyun bozan, seni affeder mi bu vicdan...",
+    "aliases": ["zalim", "levent yuksel zalim", "levent yüksel zalim"]
+  },
+  {
+    "id": "mustafa_sandal_araba",
+    "name": "Araba",
+    "artist": "Mustafa Sandal",
+    "album": "Gölgede Aynı",
+    "year": 1996,
+    "genre": "Türkçe Pop",
+    "lyrics": "Onun arabası var güzel mi güzel, şoförü de var özel mi özel...",
+    "aliases": ["araba", "onun arabasi var", "mustafa sandal araba"]
+  },
+  {
+    "id": "kenan_dogulu_cakkidi",
+    "name": "Çakkıdı",
+    "artist": "Kenan Doğulu",
+    "album": "Festival",
+    "year": 2006,
+    "genre": "Türkçe Pop",
+    "lyrics": "Hadi çakkıdı çakkıdı oyna canım, hepimiz insanız sonuçta canım...",
+    "aliases": ["cakkidi", "çakkıdı", "kenan dogulu cakkidi"]
+  },
+  {
+    "id": "ceza_suspus",
+    "name": "Suspus",
+    "artist": "Ceza",
+    "album": "Suspus",
+    "year": 2015,
+    "genre": "Türkçe Rap",
+    "lyrics": "Tenhalarda gezinirken bir ses duydum pusuda bekleyen, suspus oldu herkes...",
+    "aliases": ["suspus", "sus pus", "ceza suspus"]
+  },
+  {
+    "id": "ceza_holocaust",
+    "name": "Holocaust",
+    "artist": "Ceza",
+    "album": "Rapstar",
+    "year": 2004,
+    "genre": "Türkçe Rap",
+    "lyrics": "Kazınmış her yere sözlerim acımaz hiç kimseye gözlerim...",
+    "aliases": ["holocaust", "ceza holocaust"]
+  },
+  {
+    "id": "sagopa_kajmer_atesten_gomlek",
+    "name": "Ateşten Gömlek",
+    "artist": "Sagopa Kajmer",
+    "album": "Kötü İnsanları Tanıma Senesi",
+    "year": 2008,
+    "genre": "Türkçe Rap",
+    "lyrics": "Gözümün nuru kırıldı, sırtımda ateşten gömlek... Kaç tabut gömülecek yeraltına...",
+    "aliases": ["atesten gomlek", "ateşten gömlek", "sagopa kajmer atesten gomlek"]
+  },
+  {
+    "id": "sagopa_kajmer_galiba",
+    "name": "Galiba",
+    "artist": "Sagopa Kajmer",
+    "album": "Kötü İnsanları Tanıma Senesi",
+    "year": 2008,
+    "genre": "Türkçe Rap",
+    "lyrics": "Korkuyorum gecelerden, galiba ölüyorum derdimden... Yağmur yağsa üstüme...",
+    "aliases": ["galiba", "sagopa kajmer galiba"]
+  },
+  {
+    "id": "ceza_sagopa_neyim_var_ki",
+    "name": "Neyim Var Ki",
+    "artist": "Ceza ft. Sagopa Kajmer",
+    "album": "Rapstar",
+    "year": 2004,
+    "genre": "Türkçe Rap",
+    "lyrics": "Neyim var ki rapten gari? Bir silahım bir de kalemim var...",
+    "aliases": ["neyim var ki", "ceza sagopa neyim var ki", "neyim varki"]
+  },
+  {
+    "id": "ezhel_geceler",
+    "name": "Geceler",
+    "artist": "Ezhel",
+    "album": "Müptezhel",
+    "year": 2017,
+    "genre": "Türkçe Trap / Rap",
+    "lyrics": "Geceler geceler, kapkara geceler... Işıklar söndüğünde başlar hikayeler...",
+    "aliases": ["geceler", "ezhel geceler"]
+  },
+  {
+    "id": "gazapizm_heyecani_yok",
+    "name": "Heyecanı Yok",
+    "artist": "Gazapizm",
+    "album": "Bir Gün Her Şey",
+    "year": 2017,
+    "genre": "Türkçe Rap",
+    "lyrics": "Gözlerimin önünde bir perde var, sokakların artık heyecanı yok...",
+    "aliases": ["heyecani yok", "heyecanı yok", "gazapizm heyecani yok"]
+  },
+  {
+    "id": "cartel_cartel",
+    "name": "Cartel",
+    "artist": "Cartel",
+    "album": "Cartel",
+    "year": 1995,
+    "genre": "Türkçe Rap",
+    "lyrics": "Cartel bir numara en büyük, cehennemden çıkan çılgın Türk...",
+    "aliases": ["cartel", "cartel bir numara"]
+  },
+  {
+    "id": "madrigal_seni_dert_etmeler",
+    "name": "Seni Dert Etmeler",
+    "artist": "Madrigal",
+    "album": "Neogazel",
+    "year": 2020,
+    "genre": "İndie Pop / Rock",
+    "lyrics": "Seni dert etmeler, kendi kendime yetmeler... Bir sonbahar akşamında...",
+    "aliases": ["seni dert etmeler", "madrigal seni dert etmeler"]
+  },
+  {
+    "id": "dedubluman_gamzedeyim",
+    "name": "Gamzedeyim Deva Bulmam",
+    "artist": "Dedublüman",
+    "album": "Gamzedeyim Deva Bulmam",
+    "year": 2022,
+    "genre": "Alternatif Rock",
+    "lyrics": "Gamzedeyim deva bulmam, garibim bir yuva kurmam... Kaderimdir çekerim ben...",
+    "aliases": ["gamzedeyim deva bulmam", "gamzedeyim", "dedubluman gamzedeyim"]
+  },
+  {
+    "id": "adamlar_koca_yasli_sisko_dunya",
+    "name": "Koca Yaşlı Şişko Dünya",
+    "artist": "Adamlar",
+    "album": "Eski Dostum Tankla Gelmiş",
+    "year": 2014,
+    "genre": "Alternatif Rock",
+    "lyrics": "Koca yaşlı şişko dünya, sırtında bu kadar yükle dönersin durmadan...",
+    "aliases": ["koca yasli sisko dunya", "koca yaşlı şişko dünya", "adamlar koca yasli sisko dunya"]
+  },
+  {
+    "id": "yuzyuzeyken_dinle_beni_bi",
+    "name": "Dinle Beni Bi'",
+    "artist": "Yüzyüzeyken Konuşuruz",
+    "album": "Akustik Travma",
+    "year": 2018,
+    "genre": "İndie Rock",
+    "lyrics": "Dinle beni bi' ne olur, sana söyleyeceklerim bitmedi henüz...",
+    "aliases": ["dinle beni bi", "dinle beni bir", "yuzyuzeyken dinle beni bi"]
+  },
+  {
+    "id": "emir_can_igrek_ali_cabbar",
+    "name": "Ali Cabbar",
+    "artist": "Emir Can İğrek",
+    "album": "Parti İptal",
+    "year": 2023,
+    "genre": "Türkçe Pop",
+    "lyrics": "Bu dert beni öldürür Ali Cabbar, köyün güzeli gelin olmuş gidiyor...",
+    "aliases": ["ali cabbar", "emir can igrek ali cabbar"]
+  },
+  {
+    "id": "ahmet_kaya_kum_gibi",
+    "name": "Kum Gibi",
+    "artist": "Ahmet Kaya",
+    "album": "Tedirgin",
+    "year": 1993,
+    "genre": "Özgün Müzik",
+    "lyrics": "Martılar ağlardı çöplüklerde, biz seninle gülüşürdük... Kum gibi ezip geçme beni...",
+    "aliases": ["kum gibi", "ahmet kaya kum gibi"]
+  },
+  {
+    "id": "mirkelam_her_gece",
+    "name": "Her Gece",
+    "artist": "Mirkelam",
+    "album": "Mirkelam",
+    "year": 1995,
+    "genre": "Türkçe Pop",
+    "lyrics": "Her gece ben senin için koşarım yollarda, ararım bulamam yine seni...",
+    "aliases": ["her gece", "her gece ben", "mirkelam her gece"]
+  },
+  {
+    "id": "queen_bohemian_rhapsody",
+    "name": "Bohemian Rhapsody",
+    "artist": "Queen",
+    "album": "A Night at the Opera",
+    "year": 1975,
+    "genre": "Rock",
+    "lyrics": "Is this the real life? Is this just fantasy? Caught in a landslide, no escape from reality...",
+    "aliases": ["bohemian rhapsody", "queen bohemian rhapsody", "mama just killed a man"]
+  },
+  {
+    "id": "michael_jackson_billie_jean",
+    "name": "Billie Jean",
+    "artist": "Michael Jackson",
+    "album": "Thriller",
+    "year": 1982,
+    "genre": "Pop",
+    "lyrics": "Billie Jean is not my lover, she's just a girl who claims that I am the one...",
+    "aliases": ["billie jean", "michael jackson billie jean"]
+  },
+  {
+    "id": "nirvana_smells_like_teen_spirit",
+    "name": "Smells Like Teen Spirit",
+    "artist": "Nirvana",
+    "album": "Nevermind",
+    "year": 1991,
+    "genre": "Grunge / Rock",
+    "lyrics": "With the lights out, it's less dangerous, here we are now, entertain us...",
+    "aliases": ["smells like teen spirit", "nirvana smells like teen spirit"]
+  },
+  {
+    "id": "linkin_park_in_the_end",
+    "name": "In the End",
+    "artist": "Linkin Park",
+    "album": "Hybrid Theory",
+    "year": 2000,
+    "genre": "Nu-Metal / Rock",
+    "lyrics": "I tried so hard and got so far, but in the end it doesn't even matter...",
+    "aliases": ["in the end", "linkin park in the end"]
+  },
+  {
+    "id": "daft_punk_get_lucky",
+    "name": "Get Lucky",
+    "artist": "Daft Punk",
+    "album": "Random Access Memories",
+    "year": 2013,
+    "genre": "Funk / Disco",
+    "lyrics": "We've come too far to give up who we are, so let's raise the bar and our cups to the stars...",
+    "aliases": ["get lucky", "daft punk get lucky"]
+  },
+  {
+    "id": "the_weeknd_blinding_lights",
+    "name": "Blinding Lights",
+    "artist": "The Weeknd",
+    "album": "After Hours",
+    "year": 2019,
+    "genre": "Synthwave / Pop",
+    "lyrics": "I've been on my own for long enough, maybe you can show me how to love...",
+    "aliases": ["blinding lights", "the weeknd blinding lights"]
+  },
+  {
+    "id": "acdc_back_in_black",
+    "name": "Back in Black",
+    "artist": "AC/DC",
+    "album": "Back in Black",
+    "year": 1980,
+    "genre": "Hard Rock",
+    "lyrics": "Back in black, I hit the sack, I've been too long, I'm glad to be back...",
+    "aliases": ["back in black", "acdc back in black", "ac dc back in black"]
+  }
+]

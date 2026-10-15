@@ -1,0 +1,519 @@
+[
+  {
+    "id": "tr",
+    "name": "Türkiye",
+    "aliases": [
+      "turkiye",
+      "turkey",
+      "tc"
+    ]
+  },
+  {
+    "id": "de",
+    "name": "Almanya",
+    "aliases": [
+      "almanya",
+      "germany",
+      "deutschland"
+    ]
+  },
+  {
+    "id": "fr",
+    "name": "Fransa",
+    "aliases": [
+      "fransa",
+      "france"
+    ]
+  },
+  {
+    "id": "it",
+    "name": "İtalya",
+    "aliases": [
+      "italya",
+      "italy",
+      "italia"
+    ]
+  },
+  {
+    "id": "es",
+    "name": "İspanya",
+    "aliases": [
+      "ispanya",
+      "spain",
+      "espana"
+    ]
+  },
+  {
+    "id": "gb",
+    "name": "Birleşik Krallık",
+    "aliases": [
+      "ingiltere",
+      "uk",
+      "britanya",
+      "great britain",
+      "birlesik krallik"
+    ]
+  },
+  {
+    "id": "us",
+    "name": "Amerika Birleşik Devletleri",
+    "aliases": [
+      "amerika",
+      "abd",
+      "usa",
+      "united states"
+    ]
+  },
+  {
+    "id": "br",
+    "name": "Brezilya",
+    "aliases": [
+      "brezilya",
+      "brazil",
+      "brasil"
+    ]
+  },
+  {
+    "id": "ar",
+    "name": "Arjantin",
+    "aliases": [
+      "arjantin",
+      "argentina"
+    ]
+  },
+  {
+    "id": "jp",
+    "name": "Japonya",
+    "aliases": [
+      "japonya",
+      "japan",
+      "nippon"
+    ]
+  },
+  {
+    "id": "kr",
+    "name": "Güney Kore",
+    "aliases": [
+      "guney kore",
+      "kore",
+      "south korea",
+      "korea"
+    ]
+  },
+  {
+    "id": "cn",
+    "name": "Çin",
+    "aliases": [
+      "cin",
+      "china"
+    ]
+  },
+  {
+    "id": "ru",
+    "name": "Rusya",
+    "aliases": [
+      "rusya",
+      "russia"
+    ]
+  },
+  {
+    "id": "ca",
+    "name": "Kanada",
+    "aliases": [
+      "kanada",
+      "canada"
+    ]
+  },
+  {
+    "id": "nl",
+    "name": "Hollanda",
+    "aliases": [
+      "hollanda",
+      "netherlands"
+    ]
+  },
+  {
+    "id": "pt",
+    "name": "Portekiz",
+    "aliases": [
+      "portekiz",
+      "portugal"
+    ]
+  },
+  {
+    "id": "gr",
+    "name": "Yunanistan",
+    "aliases": [
+      "yunanistan",
+      "greece"
+    ]
+  },
+  {
+    "id": "az",
+    "name": "Azerbaycan",
+    "aliases": [
+      "azerbaycan",
+      "azerbaijan"
+    ]
+  },
+  {
+    "id": "se",
+    "name": "İsveç",
+    "aliases": [
+      "isvec",
+      "sweden"
+    ]
+  },
+  {
+    "id": "no",
+    "name": "Norveç",
+    "aliases": [
+      "norvec",
+      "norway"
+    ]
+  },
+  {
+    "id": "fi",
+    "name": "Finlandiya",
+    "aliases": [
+      "finlandiya",
+      "finland"
+    ]
+  },
+  {
+    "id": "dk",
+    "name": "Danimarka",
+    "aliases": [
+      "danimarka",
+      "denmark"
+    ]
+  },
+  {
+    "id": "ch",
+    "name": "İsviçre",
+    "aliases": [
+      "isvicre",
+      "switzerland"
+    ]
+  },
+  {
+    "id": "at",
+    "name": "Avusturya",
+    "aliases": [
+      "avusturya",
+      "austria"
+    ]
+  },
+  {
+    "id": "be",
+    "name": "Belçika",
+    "aliases": [
+      "belcika",
+      "belgium"
+    ]
+  },
+  {
+    "id": "pl",
+    "name": "Polonya",
+    "aliases": [
+      "polonya",
+      "poland"
+    ]
+  },
+  {
+    "id": "eg",
+    "name": "Mısır",
+    "aliases": [
+      "misir",
+      "egypt"
+    ]
+  },
+  {
+    "id": "in",
+    "name": "Hindistan",
+    "aliases": [
+      "hindistan",
+      "india"
+    ]
+  },
+  {
+    "id": "mx",
+    "name": "Meksika",
+    "aliases": [
+      "meksika",
+      "mexico"
+    ]
+  },
+  {
+    "id": "au",
+    "name": "Avustralya",
+    "aliases": [
+      "avustralya",
+      "australia"
+    ]
+  },
+  {
+    "id": "ua",
+    "name": "Ukrayna",
+    "aliases": [
+      "ukrayna",
+      "ukraine"
+    ]
+  },
+  {
+    "id": "sa",
+    "name": "Suudi Arabistan",
+    "aliases": [
+      "suudi arabistan",
+      "arabistan",
+      "saudi arabia"
+    ]
+  },
+  {
+    "id": "ma",
+    "name": "Fas",
+    "aliases": [
+      "fas",
+      "morocco"
+    ]
+  },
+  {
+    "id": "za",
+    "name": "Güney Afrika",
+    "aliases": [
+      "guney afrika",
+      "south africa"
+    ]
+  },
+  {
+    "id": "hr",
+    "name": "Hırvatistan",
+    "aliases": [
+      "hirvatistan",
+      "croatia"
+    ]
+  },
+  {
+    "id": "rs",
+    "name": "Sırbistan",
+    "aliases": [
+      "sirbistan",
+      "serbia"
+    ]
+  },
+  {
+    "id": "ie",
+    "name": "İrlanda",
+    "aliases": [
+      "irlanda",
+      "ireland"
+    ]
+  },
+  {
+    "id": "is",
+    "name": "İzlanda",
+    "aliases": [
+      "izlanda",
+      "iceland"
+    ]
+  },
+  {
+    "id": "cl",
+    "name": "Şili",
+    "aliases": [
+      "sili",
+      "chile"
+    ]
+  },
+  {
+    "id": "co",
+    "name": "Kolombiya",
+    "aliases": [
+      "kolombiya",
+      "colombia"
+    ]
+  },
+  {
+    "id": "pe",
+    "name": "Peru",
+    "aliases": [
+      "peru"
+    ]
+  },
+  {
+    "id": "uy",
+    "name": "Uruguay",
+    "aliases": [
+      "uruguay"
+    ]
+  },
+  {
+    "id": "cz",
+    "name": "Çekya",
+    "aliases": [
+      "cekya",
+      "czechia",
+      "cek cumhuriyeti"
+    ]
+  },
+  {
+    "id": "hu",
+    "name": "Macaristan",
+    "aliases": [
+      "macaristan",
+      "hungary"
+    ]
+  },
+  {
+    "id": "ro",
+    "name": "Romanya",
+    "aliases": [
+      "romanya",
+      "romania"
+    ]
+  },
+  {
+    "id": "bg",
+    "name": "Bulgaristan",
+    "aliases": [
+      "bulgaristan",
+      "bulgaria"
+    ]
+  },
+  {
+    "id": "sk",
+    "name": "Slovakya",
+    "aliases": [
+      "slovakya",
+      "slovakia"
+    ]
+  },
+  {
+    "id": "si",
+    "name": "Slovenya",
+    "aliases": [
+      "slovenya",
+      "slovenia"
+    ]
+  },
+  {
+    "id": "qa",
+    "name": "Katar",
+    "aliases": [
+      "katar",
+      "qatar"
+    ]
+  },
+  {
+    "id": "ae",
+    "name": "Birleşik Arap Emirlikleri",
+    "aliases": [
+      "bae",
+      "dubai",
+      "uae",
+      "birlesik arap emirlikleri"
+    ]
+  },
+  {
+    "id": "id",
+    "name": "Endonezya",
+    "aliases": [
+      "endonezya",
+      "indonesia"
+    ]
+  },
+  {
+    "id": "th",
+    "name": "Tayland",
+    "aliases": [
+      "tayland",
+      "thailand"
+    ]
+  },
+  {
+    "id": "vn",
+    "name": "Vietnam",
+    "aliases": [
+      "vietnam"
+    ]
+  },
+  {
+    "id": "nz",
+    "name": "Yeni Zelanda",
+    "aliases": [
+      "yeni zelanda",
+      "new zealand"
+    ]
+  },
+  {
+    "id": "dz",
+    "name": "Cezayir",
+    "aliases": [
+      "cezayir",
+      "algeria"
+    ]
+  },
+  {
+    "id": "tn",
+    "name": "Tunus",
+    "aliases": [
+      "tunus",
+      "tunisia"
+    ]
+  },
+  {
+    "id": "ge",
+    "name": "Gürcistan",
+    "aliases": [
+      "gurcistan",
+      "georgia"
+    ]
+  },
+  {
+    "id": "kz",
+    "name": "Kazakistan",
+    "aliases": [
+      "kazakistan",
+      "kazakhstan"
+    ]
+  },
+  {
+    "id": "uz",
+    "name": "Özbekistan",
+    "aliases": [
+      "ozbekistan",
+      "uzbekistan"
+    ]
+  },
+  {
+    "id": "tm",
+    "name": "Türkmenistan",
+    "aliases": [
+      "turkmenistan"
+    ]
+  },
+  {
+    "id": "cy",
+    "name": "Kıbrıs",
+    "aliases": [
+      "kibris",
+      "cyprus"
+    ]
+  },
+  {
+    "id": "cu",
+    "name": "Küba",
+    "aliases": [
+      "kuba",
+      "cuba"
+    ]
+  },
+  {
+    "id": "jm",
+    "name": "Jamaika",
+    "aliases": [
+      "jamaika",
+      "jamaica"
+    ]
+  }
+]
