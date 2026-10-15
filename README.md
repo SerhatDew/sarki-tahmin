@@ -17,10 +17,11 @@ Yerel `.env` değerleri, aynı isimdeki ortam değişkenlerinden önceliklidir.
 
 Discord Developer Portal üzerinden:
 
-1. Uygulamanın **Bot** sayfasında **Message Content Intent** seçeneğini açın. Sohbet tahminleri için gereklidir.
-2. Botu sunucuya `bot` ve `applications.commands` kapsamlarıyla davet edin.
-3. Oyun kanalında kanalı görüntüleme, mesaj gönderme, bağlantı yerleştirme ve dosya ekleme izinlerini verin.
-Sesli mod için hedef ses kanalında **Bağlan** ve **Konuş** izinleri de gerekir.
+1. Botu sunucuya `bot` ve `applications.commands` kapsamlarıyla davet edin.
+2. Oyun kanalında kanalı görüntüleme, mesaj gönderme, bağlantı yerleştirme ve dosya ekleme izinlerini verin.
+3. Sesli mod için hedef ses kanalında **Bağlan** ve **Konuş** izinlerini de verin.
+
+Tahminler özel formlardan alınır; **Message Content Intent** gerekli değildir.
 
 ```sh
 bun start
@@ -37,12 +38,15 @@ Komutlar bot bağlandıktan sonra otomatik kaydedilir. Sunucu metin kanalında `
 - **Minecraft:** Görseldeki eşyanın adını bulun.
 - **Karışık:** Bu üç kategori arasından rastgele tur açılır.
 
-Sohbet modunda cevabı kanala yazın; buton modunda dört seçenekten birini seçin. Türkçe karakterler ve küçük yazım hataları tolere edilir.
-Şarkı modunda yalnızca sanatçı adı yeterli değildir. Sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
+Her oyun tek bir ortak embed kullanır. Tur, ipuçları, cevap ve skorlar yeni mesaj göndermek yerine aynı panelde güncellenir.
+**Formdan tahmin** modunda herkes **Tahmin Et** butonuyla kendine özel bir form açar. Cevap ve geri bildirim yalnızca ilgili oyuncuya görünür; kanala tahmin yazılmaz.
+**Dört şıklı tahmin** modunda paneldeki seçeneklerden birini seçin.
+Türkçe karakterler ve küçük yazım hataları tolere edilir. Şarkı modunda yalnızca sanatçı adı yeterli değildir; sanatçı ve şarkı adı birlikte, her iki sırada da yazılabilir.
+İlk doğru cevap puanı kazanır. Önceki turdan veya bitmiş oyundan açık kalan formlar geçersizdir.
 
 Her tur 25 saniye sürer. Görsel 5 saniyede bir netleşir; seviye 5'ten 1'e doğru puan 50'den 10'a düşer.
 Netleştir butonu seviyeyi bir kademe düşürür, turu atla butonu cevabı açar ve puan vermez.
-Tur bitince zamanlayıcı ve buton dinleyicisi kapatılır; eski turun etkileşimleri yeni turu değiştirmez.
+Tur bitince zamanlayıcı durur ve paneldeki kontroller kapanır; eski turun buton ve formları yeni turu değiştirmez.
 
 Şarkı görselleri temsili müzik kartlarıdır, orijinal albüm kapakları değildir.
 
@@ -55,7 +59,8 @@ ayrıca Opus eklentisi kurmak gerekmez.
 
 `/oyun` komutunda **Şarkı ve Müzik** kategorisini, **Sesli şarkı tahmini** modunu
 ve isteğe bağlı `ses_kanali` seçeneğini seçin. Kanal seçilmezse katıldığınız ses
-kanalı kullanılır. Tahminleri ve `/bitir` komutunu ses kanalının sohbetine yazın.
+kanalı kullanılır. Ses kanalının sohbetindeki ortak panelde **Tahmin Et** butonuna basıp şarkı adını forma yazın.
+Oyunu paneldeki **Bitir** butonuyla veya aynı kanalda `/bitir` komutuyla kapatabilirsiniz.
 
 Bot iTunes Search API üzerinden başlık ve sanatçıyla eşleşen gerçek önizlemeleri
 bulur ve en fazla 25 saniye çalar. Yanlış eser, farklı sanatçı ve uygun önizlemesi

@@ -12,34 +12,28 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const embed = new EmbedBuilder()
-    .setTitle("📖 Şarkı & Görsel Tahmin Sistemi — Nasıl Oynanır?")
+    .setTitle("Tahmin Oyunu — Nasıl Oynanır?")
     .setDescription(
-      "Bu botta albüm kapakları, bayraklar ve eşyalar kademeli olarak blurlu (bulanık) şekilde ekrana gelir.\n" +
-      "Şarkı modunda her turda müzik türü, çıkış yılı, sanatçı ve şarkı sözü ipuçları açılır!\n" +
-      "Süre geçtikçe veya oyuncular tahmin yaptıkça görsel yavaş yavaş netleşir!\n\n" +
+      "Her oyun tek bir ortak panel kullanır. Tur, ipuçları, sonuç ve skorlar aynı mesajda güncellenir.\n\n" +
+      "**Tahmin:** Herkes paneldeki `Tahmin Et` butonuyla kendi formunu açabilir. " +
+      "Cevap ve geri bildirim yalnızca tahmini yapan oyuncuya görünür; kanala tahmin mesajı atılmaz. " +
+      "İlk doğru cevap puanı kazanır. Önceki turdan açık kalan form yeni turda geçersizdir.\n\n" +
+      "**Görsel mod:** Şarkı kartları, bayraklar ve eşyalar zamanla netleşir. " +
+      "Dört şıklı modda cevabı doğrudan paneldeki seçeneklerden seçin.\n\n" +
       "**Sesli mod:** `/oyun` içinde şarkı kategorisini ve sesli modu seçin. " +
-      "Bot ses kanalında kesit çalar; şarkı adını aynı kanalın sohbetine yazın. " +
-      "Kanalda `/bitir` ile sesi ve oturumu kapatabilirsiniz.\n\n" +
-      "**🎯 Kademeli Puan Cetveli:**\n" +
-      "• 🟥 **Seviye 5 (En Bulanık):** ⭐ **50 Puan** (Görsel neredeyse görünmezken)\n" +
-      "• 🟧 **Seviye 4:** ⭐ **40 Puan**\n" +
-      "• 🟨 **Seviye 3:** ⭐ **30 Puan**\n" +
-      "• 🟦 **Seviye 2:** ⭐ **20 Puan**\n" +
-      "• 🟩 **Seviye 1 (En Net):** ⭐ **10 Puan**\n" +
-      "• ⬛ **Süre Bittiğinde (Seviye 0):** Orijinal görsel ifşa olur, puan verilmez.\n\n" +
-      "**⚡ Oyun İçi Butonlar:**\n" +
-      "• `🔍 Netleştir`: Görseli hemen 1 seviye açar (puan değeri 10 düşer).\n" +
-      "• `⏩ Turu Atla`: Mevcut soruyu pas geçer.\n" +
-      "• `⏹️ Bitir`: Oyunu sonlandırıp podyum grafiğini gösterir.\n\n" +
-      "**🎮 Komutlar:**\n" +
-      "• `/oyun` — Kategori ve mod seçerek oyunu başlatır.\n" +
-      "• `/bitir` — Aktif oyunu kapatır.\n" +
-      "• `/sıralama` — Sunucunun en yüksek puanlı oyuncuları.\n" +
-      "• `/profil` — Kişisel istatistik kartınız."
+      "Bot ses kanalında kesit çalar; aynı kanalın sohbetindeki panelden `Tahmin Et` butonuna basın. " +
+      "Yalnızca sanatçı adı değil, şarkının adı gerekir.\n\n" +
+      "**Puanlama:** Seviye 5: 50, seviye 4: 40, seviye 3: 30, seviye 2: 20, seviye 1: 10 puan. " +
+      `Her tur ${CONFIG.ROUND_DURATION} saniye sürer. Süre dolunca cevap açıklanır, puan verilmez.\n\n` +
+      "**Panel kontrolleri:**\n" +
+      "• `İpucu` / `Netleştir`: Bir seviye açar, turun değerini 10 puan düşürür.\n" +
+      "• `Turu Atla`: Cevabı gösterir, puan vermez.\n" +
+      "• `Bitir`: Oyunu ve varsa sesi kapatır, skor tablosunu gösterir.\n\n" +
+      "**Komutlar:** `/oyun`, `/bitir`, `/sıralama`, `/profil`, `/yardım`."
     )
     .setColor(CONFIG.COLORS.PRIMARY)
     .setFooter({
       text: `Kütüphane: ${dataManager.songs.length} Şarkı, ${dataManager.flags.length} Bayrak, ${dataManager.minecraft.length} Minecraft Eşyası hazır!`
     });
-  await interaction.reply({ embeds: [embed] });
+  await interaction.reply({ embeds: [embed], ephemeral: true });
 }
